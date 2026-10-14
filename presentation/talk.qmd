@@ -1266,7 +1266,7 @@ Clone everything, including the demo repository:
 
 ```bash
 git clone --recurse-submodules \
-  https://github.com/YOUR-USERNAME/dev-tools-demo.git
+  https://github.com/RowanLS/developer-tooling-talk.git
 
 cd dev-tools-demo/rt-demo
 git switch --detach 00-start
