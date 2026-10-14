@@ -23,8 +23,23 @@ I've sent you this repository. **Can you reproduce the figure?**
 
 ::: {.notes}
 Demo: `demo-start` (00-start), then run `python analysis.py`.
-Ask: Which Python? Which pandas? Which matplotlib? How do you install them?
-Message: working on my computer is not the same as reproducible.
+
+Main point:
+- The script working for me is not enough to make the analysis reproducible.
+- The repository does not yet describe the environment needed to run it.
+
+Ask:
+- Which Python version?
+- Which pandas?
+- Which matplotlib?
+- How do you install them?
+
+Key Practical Question: can another person take this repository
+and regenerate the output?
+
+Transition:
+First, before adding any tooling, I need to know what changed and why.
+That means version control.
 :::
 
 ---
@@ -40,7 +55,30 @@ Version control is a record of deliberate changes—not a folder of `final_v3.py
 :::
 
 ::: {.notes}
-Git foundations: commit, diff, branch, recover. Anecdote: finding when an analysis changed.
+Main point:
+
+Version control / Back up is important because of:
+- computer death
+- accidental deletion
+- mistakes
+
+Version control gives us a history of deliberate changes to the project.
+
+* Git gives me:*
+- commits: meaningful snapshots;
+- diffs: exactly what changed;
+- branches: somewhere to experiment;
+- recovery: the ability to return to known states.
+
+Important distinction:
+Git is not primarily a backup system. Its value is the structured history
+of changes and the ability to reason about how the project evolved.
+
+This entire live demo relies on Git: every stage is a tagged historical
+version of the same project.
+
+Transition:
+Git itself is local. GitHub is a separate thing built around Git repositories.
 :::
 
 ---
@@ -69,9 +107,30 @@ Git foundations: commit, diff, branch, recover. Anecdote: finding when an analys
 :::
 
 ::: {.notes}
-Explain the difference. GitHub will reappear when demonstrating CI and Dependabot.
-:::
+Main point:
+Git and GitHub are related but not interchangeable.
 
+Git:
+- software installed on my computer;
+- tracks repository history;
+- works completely offline;
+- GitHub did not invent Git.
+
+GitHub:
+- a service that can host Git repositories;
+- adds collaboration: pull requests, issues, permissions;
+- also provides services such as Actions and Dependabot.
+
+Useful test:
+I can use Git without GitHub.
+I cannot meaningfully use GitHub repositories without Git underneath them.
+
+GitHub will come back later when we need CI and dependency automation.
+
+Transition:
+Now that we can track changes, the first problem with our actual project is:
+can somebody reproduce its software environment?
+:::
 ---
 
 ## Reproducibility starts with the environment
@@ -98,7 +157,26 @@ Move knowledge **from the state of my laptop into the repository**.
 ::: {.notes}
 `demo-next` -> 01-uv.
 Run `uv sync`, then `uv run python analysis.py`.
-Anecdote slot: dependency/environment problem from a real project.
+
+Main point:
+The environment is part of the project, even though it isn't application code.
+
+pyproject.toml:
+- describes the project and its direct dependencies;
+- human-maintained project configuration.
+
+uv.lock:
+- records the resolved dependency graph and versions;
+- generated rather than something I normally hand-edit.
+
+uv sync:
+- makes my local environment agree with the project/lockfile.
+
+Key phrase:
+We're moving knowledge from "the state of my laptop" into version-controlled files.
+
+Don't claim that a lockfile guarantees perfect long-term reproducibility.
+It solves an important part of the problem, not every possible source of variation.
 :::
 
 ---
@@ -129,7 +207,20 @@ If a computer can identify and fix something reliably, don't spend human attenti
 ::: {.notes}
 `demo-next` -> 02-ruff.
 Run Ruff and let it fail. Then --fix, format, and show git diff.
-Distinguish formatter (appearance) from linter (suspicious/problematic constructs).
+Main point:
+Use human attention for things requiring judgement; automate mechanical checks.
+
+Formatter:
+decides how code should look.
+
+Linter:
+analyses code for suspicious constructs, style violations and some likely bugs.
+
+Ruff does both, but they are conceptually different jobs.
+
+Important:
+Lint passing does NOT mean the program is correct.
+We're gradually building different layers of checks.
 :::
 
 ---
@@ -163,7 +254,34 @@ Which interface would you rather discover in somebody else's code?
 Temporarily pass a string instead of Path:
 `data_file = "data/results.csv"; results = analyse(data_file)`.
 Run `uv run pyright`; fix with Path and rerun.
-Keep pandas typing complications out of the live explanation.
+
+Python is dynamically typed: adding annotations does not fundamentally turn
+Python into a statically typed language.
+
+The annotation:
+
+    file: Path
+
+documents an expectation about the interface.
+
+The return annotation:
+
+    list[tuple[str, float]]
+
+documents what callers can expect back.
+
+Benefits:
+- documentation for humans;
+- editor completion/navigation;
+- static analysis with Pyright;
+- mismatches can be detected before execution.
+
+Type annotations are not runtime validation by themselves.
+
+Transition:
+Once we've written down those assumptions, Pyright can compare different
+parts of the program and tell us when they disagree.
+
 :::
 
 ---
@@ -191,6 +309,23 @@ results = analyse(data_file)
 Types make interfaces useful to **people and tools**.
 :::
 
+::: {.notes}
+Main point:
+Pyright performs static analysis: it reasons about the code without needing
+to execute this particular path.
+
+The function says it expects a Path.
+The caller supplies a str.
+Both are individually valid Python objects, but the interfaces disagree.
+
+This is deliberately a simple example.
+Real value comes when these interfaces are separated across modules and the
+mismatch is less visually obvious.
+
+Transition:
+Types can tell us whether components agree. They cannot tell us whether our
+design has become unnecessarily difficult to understand.
+:::
 ---
 
 ## “Just one more option…”
@@ -219,7 +354,29 @@ Nobody deliberately writes the horrible 200-line function. **Complexity accumula
 ::: {.notes}
 `demo-next` -> 04-complexity.
 First run Pyright: it should pass. Then Ruff: C901 should fail.
-Anecdote slot: function that became frightening to modify.
+
+Main point:
+Complexity usually accumulates gradually rather than because someone decided
+to write bad code.
+
+C901 here is Ruff's McCabe/cyclomatic complexity check.
+
+Very roughly:
+each additional independent branch increases the number of possible paths
+through the function.
+
+The exact threshold is not a law of nature.
+For this demo I deliberately use a strict threshold so the problem is visible.
+
+Complexity metrics are signals for investigation, not proof that code is bad.
+
+Notice:
+Pyright passes. The interfaces are type-consistent.
+Ruff's complexity check is answering a different question.
+
+Transition:
+We can make the code reproducible, tidy, typed and reasonably structured.
+But none of that answers the most important question...
 :::
 
 ---
@@ -239,6 +396,30 @@ Anecdote slot: function that became frightening to modify.
 **We don't know.**
 
 None of those tools knows what a reaction time means.
+:::
+
+::: {.notes}
+Pause here.
+
+We've checked:
+- environment;
+- lint/style;
+- interfaces/types;
+- maintainability/complexity.
+
+Ask: does any of that establish that our scientific calculation is right?
+
+No.
+
+These tools know about software structure. They do not know the scientific
+meaning of a reaction time.
+
+This is the pivot of the talk:
+software can be perfectly valid according to generic tooling and still be
+scientifically wrong.
+
+Transition:
+Consider a value of -250 ms.
 :::
 
 ---
@@ -262,9 +443,34 @@ P01            control             -250
 A value can have the correct type and still be wrong.
 :::
 
+::: {.notes}
+Main point:
+Type correctness and domain validity are different things.
+
+-250.0 is a perfectly valid float.
+Python accepts it.
+Pyright accepts it.
+Ruff has no reason to object.
+
+But our domain knowledge says a reaction time cannot be negative.
+
+A type checker answers:
+"What kind of value is this?"
+
+Domain validation answers:
+"Is this value meaningful/allowed in this problem?"
+
+Don't claim pytest somehow knows scientific truth.
+We have to encode the relevant scientific/domain assumptions ourselves.
+
+Transition:
+So we turn that assumption into executable validation and test it.
+:::
 ---
 
 ## Encode what “correct” means
+
+**1. Encode the domain rule**
 
 ```python
 if (reaction_times <= 0).any():
@@ -273,7 +479,11 @@ if (reaction_times <= 0).any():
     )
 ```
 
+
 ::: {.fragment}
+
+**2. Encode the expected behaviour**
+
 ```python
 def test_negative_reaction_times_are_rejected():
     # synthetic test data containing -250 ms
@@ -288,9 +498,47 @@ uv run pytest
 :::
 
 ::: {.notes}
-`demo-next` -> 05-tests.
-Use synthetic invalid data for the domain-validation example.
-Do not edit raw data. Explain: if real raw data fail validation, investigate provenance or use a documented processing/correction step.
+`demo-next` → `05-tests`.
+
+**Main point:**
+Neither Python nor Pyright knows what a scientifically valid reaction time is. We have to encode that domain knowledge ourselves.
+
+There are three steps here:
+
+1. **State the domain rule in the application.**
+   We know a reaction time cannot be negative, so `validate_data()` rejects values `<= 0`.
+
+   This is **validation**, not testing. Its job is to stop the analysis rather than silently process impossible input.
+
+2. **Turn the expected behaviour into a test.**
+   The test constructs a small synthetic dataset containing `-250 ms` and says:
+
+   > When this data is validated, I expect a `ValueError`.
+
+   The `-250` value is **synthetic test data**. We are not introducing an error into the real dataset.
+
+3. **Run the expectation automatically.**
+
+   ```bash
+   uv run pytest
+   ```
+
+   pytest checks that the application still behaves as we specified.
+
+**Why test something we've just implemented?**
+Because the test preserves that expectation when the code changes later. If somebody refactors `validate_data()` and accidentally removes the check, the test should fail.
+
+**Important distinction:**
+pytest does not know that negative reaction times are impossible. The domain knowledge comes from us. pytest gives us a repeatable way to check that the software continues to implement that knowledge.
+
+**Research-practice point:**
+Raw data should remain immutable. If real observations fail validation, investigate their provenance. Any justified correction or exclusion should happen through an explicit, documented processing step rather than silently editing the source data.
+
+**Key line:**
+We've moved another assumption from **something I know** to **something the project can check**.
+
+**Transition:**
+And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.
 :::
 
 ---
@@ -311,6 +559,36 @@ Do not edit raw data. Explain: if real raw data fail validation, investigate pro
 There isn't one “code quality” tool. They answer different questions.
 :::
 
+::: {.notes}
+Main point:
+These tools are complementary, not competing alternatives.
+
+Ruff:
+mostly source-level/static quality checks.
+
+Pyright:
+consistency of typed interfaces.
+
+Complexity:
+a maintainability signal.
+
+pytest:
+behaviour we have explicitly specified.
+
+Important qualification:
+pytest only catches behaviour represented by tests.
+A green test suite does NOT prove the program is correct.
+
+Similarly:
+Ruff passing does not prove quality.
+Pyright passing does not prove correctness.
+Coverage does not prove correctness.
+
+Each tool reduces a particular class of risk.
+
+Transition:
+Here's the cleanest demonstration of that distinction.
+:::
 ---
 
 ## Valid code can still be wrong
@@ -318,13 +596,19 @@ There isn't one “code quality” tool. They answer different questions.
 Change:
 
 ```python
-correct = data[data["correct"]]
+    correct = pd.Series(
+        data["correct"],
+        dtype="bool",
+    )
 ```
 
 into:
 
 ```python
-correct = data[~data["correct"]]
+    correct = pd.Series(
+        ~data["correct"],
+        dtype="bool",
+    )
 ```
 
 ::: {.fragment}
@@ -340,9 +624,23 @@ The code is valid, formatted and type-correct. **It just does the opposite of wh
 :::
 
 ::: {.notes}
-This is the strongest live demo.
-At 05-tests, make the temporary inversion. Run Ruff, Pyright, then pytest.
+At 05-tests, make the temporary inversion in def clean_trials(). Run Ruff, Pyright, then pytest.
 Use `demo-reset` afterwards.
+
+Why this demo matters:
+`~data["correct"]` is valid Python and type-consistent. Static tools cannot
+infer that I intended to retain correct trials rather than incorrect ones.
+
+The test contains behavioural knowledge that the generic tools don't have.
+
+After pytest fails:
+Don't rush. Let the failure sit on screen for a moment.
+
+Then `demo-reset`.
+
+Tests are useful for:
+- validation
+- regression
 :::
 
 ---
@@ -365,6 +663,21 @@ Developer
 The fragile component is **remember**.
 :::
 
+::: {.notes}
+Main point:
+Having checks available is not enough if running them depends on memory.
+
+The remaining unreliable component is me.
+
+This isn't about developers being careless.
+Context switching, deadlines and routine human error mean optional repetitive
+steps eventually get skipped.
+
+Automation moves the check into the workflow itself.
+
+Transition:
+First we move it as close to the developer as possible: the commit.
+:::
 ---
 
 ## Automate the discipline
@@ -394,6 +707,22 @@ Make the easiest workflow the correct workflow.
 `demo-next` -> 06-precommit.
 Add an unused import, stage it, attempt commit; hook should stop it.
 Then mention `git commit --no-verify` to motivate CI.
+
+pre-commit runs configured checks automatically around the commit workflow.
+
+Advantages:
+- immediate feedback;
+- same checks every time;
+- prevents trivial failures reaching the remote repository.
+
+But:
+hooks are local.
+They have to be installed.
+They can be bypassed with --no-verify.
+
+Therefore pre-commit is convenience/early feedback, not the final enforcement layer.
+
+That limitation motivates CI.
 :::
 
 ---
@@ -422,6 +751,26 @@ Local automation improves my workflow. **CI independently verifies the shared pr
 ::: {.notes}
 `demo-next` -> 07-ci.
 Use a prepared branch or screenshot/video backup. Demonstrate a --no-verify commit being rejected by GitHub Actions.
+
+CI = continuous integration.
+
+At the previous stage, pre-commit stopped me locally. But local hooks can be bypassed with --no-verify, or someone may never install them.
+So I deliberately bypassed the hook and pushed the same regression to this PR.
+Ruff passes. Pyright passes. pytest fails.
+The important difference is that this check is now being run by the shared repository, not by my development environment.
+If we make CI a required check, this PR cannot be merged until the problem is fixed.
+
+Why this matters:
+- independent of whether I remembered;
+- independent of my editor;
+- independent of my local hooks;
+- gives collaborators one shared result.
+
+CI doesn't magically make tests better.
+It makes running the agreed checks consistent and visible.
+
+Pre-commit: fast local feedback.
+CI: independent shared verification.
 :::
 
 ---
@@ -457,6 +806,24 @@ Do the tests still pass?
 `demo-next` -> 08-dependabot.
 Show a prepared Dependabot PR rather than waiting for one live.
 Message: automated updates become safer because tests and CI already exist.
+
+Dependabot does not mean "automatically trust every new dependency version".
+
+It automates discovery/proposal of updates.
+
+The useful workflow is:
+
+update proposed
+    → CI runs
+    → tests/checks pass or fail
+    → human reviews
+    → merge or reject
+
+This is why dependency automation becomes much more useful after tests and CI
+already exist.
+
+Maintenance is part of software development, not something that only happens
+while initially writing the code.
 :::
 
 ---
@@ -489,7 +856,19 @@ A Makefile gives the project a **vocabulary**.
 ::: {.notes}
 `demo-next` -> 09-final.
 Run `make check`, then `make figure`.
-Anecdote slot: forgetting the sequence required to regenerate an analysis/output.
+
+- Make is not replacing Ruff, Pyright or pytest. It gives common project workflows stable, memorable names.
+- make check means “run the checks this project considers important”; users don't need to remember every underlying command.
+- This gives the project a small interface or vocabulary: make check, make figure.
+- The commands underneath can change later without changing the documented workflow for users.
+- This is useful for collaborators, CI, documentation, and future me.
+- Make can do considerably more with dependencies between files and targets; here I'm deliberately using it mostly as a simple task runner.
+
+Anecdote prompt
+- Constantly return to old projects and takes time to remember how to run them
+
+Transition
+- This points to a broader principle: good practice is much easier to sustain when we remove unnecessary friction.
 :::
 
 ---
@@ -514,7 +893,26 @@ Make desirable behaviour cheap.
 :::
 
 ::: {.notes}
-Show one real Espanso shortcut from your workflow. Keep this brief.
+
+**What to say**
+
+- This is a broader productivity principle rather than another code-quality layer.
+- Make reduces project-level friction by giving workflows names.
+- Espanso reduces personal repetitive typing through text expansion.
+- I use Espanso for things I type repeatedly: commands, boilerplate, paths, text fragments, or other shortcuts.
+- Small amounts of friction matter because repeated annoying steps are precisely the ones people eventually skip.
+- The goal isn't to automate everything. Automation has its own maintenance cost.
+- Automate things that are repetitive, predictable, and sufficiently common that removing the friction is worthwhile.
+
+**Demo**
+
+Show one real Espanso shortcut: gpo. Keep this brief.
+;gpo expands to -> git push origin `git rev-parse --abbrev-ref HEAD`
+
+**Transition**
+
+- We've now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?
+
 :::
 
 ---
@@ -558,6 +956,37 @@ make figure
 ```
 :::
 
+::: {.notes}
+**Return explicitly to the opening question.**
+
+**What to say**
+
+- At the beginning we had a Python script and a CSV. It worked for me, but much of the knowledge required to run it existed only on my machine or in my head.
+- The scientific analysis itself hasn't become more sophisticated.
+- What has changed is that the assumptions surrounding it have become explicit.
+
+Walk through the final commands:
+
+```bash
+uv sync
+make check
+make figure
+```
+- uv sync: establish the specified software environment.
+- make check: run the project's automated quality and behavioural checks.
+- make figure: provide a documented route from the inputs to the output.
+- A new collaborator now has a much better chance of reproducing the workflow without asking me how my laptop happens to be configured.
+
+Important qualification
+
+- This does not magically guarantee scientific reproducibility. Data provenance, operating systems, external services, randomness, hardware and many other factors may matter in real projects.
+- What we've done is systematically remove a large number of hidden software assumptions.
+
+Transition
+
+- But there is an obvious objection: look how many files we've added. Have we actually made the project simpler?
+
+:::
 ---
 
 ## Which project is simpler?
@@ -587,6 +1016,36 @@ The first has fewer files.
 **The second has fewer unstated assumptions.**
 :::
 
+::: {.notes}
+**What to say**
+- Acknowledge the obvious objection rather than pretending the tooling is free.
+- The final project has more files, more configuration and more concepts.
+- Tooling has a complexity cost. “Professional” does not mean adding every possible tool to every script.
+
+The first project is simpler in one sense:
+- fewer files;
+- fewer concepts;
+- faster to create.
+
+The second is simpler in another sense:
+- the environment is specified;
+- assumptions are tested;
+- checks are automated;
+- common workflows are documented;
+- less knowledge exists only in someone's head.
+
+**Key line**
+The first has fewer files.
+
+The second has fewer **unstated assumptions**.
+
+**Qualification**
+- For a ten-line disposable script, all this infrastructure may be excessive.
+- The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.
+
+**Transition**
+- None of these principles is particularly Python-specific.
+:::
 ---
 
 ## The same ideas exist elsewhere
@@ -596,7 +1055,7 @@ The first has fewer files.
 | Environment/deps | uv | pnpm / npm | renv | manual |
 | Format/lint | Ruff | ESLint + Prettier | lintr + styler | conventions |
 | Types | Pyright | TypeScript | limited | — |
-| Complexity | Ruff C901 | ESLint | cyclocomp | manual |
+| Complexity | Ruff C901 / complexipy | ESLint | cyclocomp | manual |
 | Tests | pytest | Vitest / Jest | testthat | regression scripts |
 | Hooks | pre-commit | Husky / lint-staged | pre-commit | external |
 | CI | GitHub Actions | GitHub Actions | GitHub Actions | possible externally |
@@ -607,6 +1066,50 @@ The first has fewer files.
 Don't learn the brand names. **Learn the problems they solve.**
 :::
 
+::: {.notes}
+**What to say**
+
+- These are rough ecosystem equivalents, not exact one-to-one replacements.
+- Don't get hung up on the product names. The transferable concepts are the important part.
+
+Walk across the rows rather than every cell:
+
+- environment/dependency management;
+- formatting and linting;
+- static checking where the language supports it;
+- testing;
+- automated hooks;
+- CI;
+- dependency maintenance;
+- task automation.
+
+**JavaScript / TypeScript**
+
+- npm/pnpm manage dependencies and lockfiles.
+- ESLint and Prettier cover similar linting/formatting concerns.
+- TypeScript itself provides the static type system.
+- Vitest/Jest fill the testing role.
+
+**R**
+
+- `renv` is particularly relevant to research because it captures project dependencies.
+- `lintr`, `styler` and `testthat` provide familiar equivalents.
+- R is dynamically typed, so there isn't a direct Pyright equivalent in common usage.
+
+**Praat**
+
+- The ecosystem has fewer off-the-shelf equivalents.
+- That doesn't make the principles irrelevant.
+- Version-control the scripts, keep procedures small, use known inputs/expected outputs for regression checks, document the workflow, and automate externally where practical.
+
+**Important**
+
+- Don't imply that every project needs every row of this table.
+
+**Transition**
+
+- If somebody here currently uses none of this, where should they actually start?
+:::
 ---
 
 ## Where should I start?
@@ -625,6 +1128,46 @@ Don't learn the brand names. **Learn the problems they solve.**
 Adopt tooling when you understand the problem it is solving.
 :::
 
+::: {.notes}
+**What to say**
+- Do not leave this talk and install nine tools simply because I've mentioned them.
+- Adopt tooling when you understand the problem it is solving.
+
+Walk through the progression:
+
+1. **Git**
+   - Gives you history, diffs and recovery.
+   - Start here.
+
+2. **Reproducible environment**
+   - Particularly important when someone else—or future you—needs to run the project.
+
+3. **Formatter / linter**
+   - Very cheap to adopt.
+   - Immediate feedback and little ongoing effort.
+
+4. **Tests**
+   - Start with important behaviour and things that have broken before.
+   - You do not need 100 tests before testing becomes valuable.
+
+5. **Types**
+   - Particularly useful where interfaces and assumptions benefit from being explicit.
+   - You don't necessarily need to annotate every local variable.
+
+6. **Pre-commit / CI**
+   - Add automation when remembering to run the checks becomes the weak point.
+
+7. **Dependency/task automation**
+   - Add as the project becomes longer-lived and repetitive workflows emerge.
+
+**If somebody asks for my minimal Python starting point**
+Git + uv + Ruff + a few meaningful pytest tests is already a substantial improvement.
+
+Then add Pyright/automation as the project warrants it.
+
+**Transition**
+- There is one idea connecting nearly everything I've shown.
+:::
 ---
 
 ## Move failures earlier
@@ -649,12 +1192,57 @@ latest             published result
 ```
 
 ::: {.fragment}
-**Catch mistakes sooner.**  
-**Make assumptions explicit.**  
-**Automate what you'll forget.**  
+**Catch mistakes sooner.**
+**Make assumptions explicit.**
+**Automate what you'll forget.**
 **Make the correct workflow easy.**
 :::
 
 ::: {.notes}
-Closing message: professional tooling is largely about moving failures earlier and reducing hidden assumptions.
+**Closing message**
+The common theme across most of these tools is **feedback latency**.
+
+Walk down the diagram:
+
+- Ruff or Pyright tells me something while I'm still writing the code.
+- Tests tell me behaviour has changed before I commit it.
+- Pre-commit catches problems before the change enters history.
+- CI catches them when the project reaches the shared repository.
+- Without those layers, the first person to notice may be a collaborator, a user, or—worst of all—someone looking at a published result.
+
+The earlier a problem is found:
+- the relevant code is more likely still to be in my head;
+- fewer people depend on the broken behaviour;
+- there is less history to investigate;
+- fixing it is generally less disruptive.
+
+**But don't overclaim**
+This isn't a claim that every bug becomes literally more expensive by some fixed amount at every stage.
+
+The principle is simply that short feedback loops are usually easier to work with.
+
+There is a second theme as well: **hidden knowledge**.
+
+Across the talk we moved knowledge out of my head and into the project:
+
+- dependencies → `pyproject.toml` / `uv.lock`
+- interfaces → type annotations
+- domain expectations → tests
+- quality expectations → configuration
+- checks → pre-commit and CI
+- common workflows → Makefile
+
+That is what I mean by making software more professional: not making it complicated for its own sake, but making important assumptions explicit and checkable.
+
+**Finish with the four lines on the slide:**
+
+Catch mistakes sooner.
+
+Make assumptions explicit.
+
+Automate what you'll forget.
+
+Make the correct workflow easy.
+
+Then stop. Don't add another summary of the tools.
 :::
