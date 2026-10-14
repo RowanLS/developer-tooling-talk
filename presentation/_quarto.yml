@@ -1,0 +1,24 @@
+project:
+  type: default
+
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    slide-number: true
+    transition: fade
+    background-transition: fade
+    controls: true
+    progress: true
+    center: false
+    width: 1600
+    height: 900
+    margin: 0.08
+    code-line-numbers: false
+    highlight-style: github
+    preview-links: auto
+
+execute:
+  echo: true
+  warning: false
+
+editor: source

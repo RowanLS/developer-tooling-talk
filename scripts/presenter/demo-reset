@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# demo-reset: Discard all changes and restore the current demo tag.
+
+set -euo pipefail
+
+tag="$(git describe --tags --exact-match HEAD 2>/dev/null)" || {
+    echo "Error: HEAD is not exactly at a tag." >&2
+    exit 1
+}
+
+git reset --hard "$tag"
+git clean -fd
+
+echo "Reset to: $tag"

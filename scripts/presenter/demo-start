@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+git reset --hard
+git clean -fd
+git switch --detach 00-start
+
+echo "Demo ready: 00-start"

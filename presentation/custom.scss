@@ -1,0 +1,26 @@
+/*-- scss:defaults --*/
+$body-bg: #fbfaf7;
+$body-color: #202124;
+$link-color: #365f91;
+$presentation-heading-color: #18212b;
+$presentation-font-size-root: 38px;
+$font-family-sans-serif: "Aptos", "Inter", "Helvetica Neue", Arial, sans-serif;
+$font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+$code-block-font-size: 0.72em;
+
+/*-- scss:rules --*/
+.reveal h1, .reveal h2 { font-weight: 650; letter-spacing: -0.02em; }
+.reveal h2 { margin-bottom: 0.65em; }
+.reveal strong { color: #244f7a; }
+.reveal pre code { max-height: 560px; }
+.reveal .small { font-size: 0.72em; }
+.reveal .tiny { font-size: 0.58em; }
+.reveal .muted { color: #666; }
+.reveal .big-question { font-size: 1.55em; font-weight: 650; margin-top: 1.3em; }
+.reveal .takeaway { margin-top: 1.1em; padding: 0.55em 0.75em; border-left: 0.18em solid #365f91; background: rgba(54,95,145,.07); }
+.reveal table { font-size: 0.72em; }
+.reveal .slides section .fragment.highlight-current-blue.current-fragment { color: #244f7a; }
+
+/* Keep slide content aligned consistently. */
+.reveal .slides section { padding-top: 0 !important; }
+.reveal .slides section > h2:first-child { margin-top: 0 !important; }

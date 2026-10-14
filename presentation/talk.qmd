@@ -1,0 +1,660 @@
+---
+title: "Better Code, Less Pain"
+subtitle: "Developer tooling I use — and why you should care"
+author: "Dr. Rowan Lindsay-Smith"
+---
+
+## Can you reproduce Figure 1?
+
+```text
+rt-demo/
+├── analysis.py
+└── data/
+    └── results.csv
+```
+
+```bash
+python analysis.py
+```
+
+::: {.fragment .big-question}
+I've sent you this repository. **Can you reproduce the figure?**
+:::
+
+::: {.notes}
+Demo: `demo-start` (00-start), then run `python analysis.py`.
+Ask: Which Python? Which pandas? Which matplotlib? How do you install them?
+Message: working on my computer is not the same as reproducible.
+:::
+
+---
+
+## Before tooling: version control
+
+```text
+working code → Git history → changes you can inspect or reverse
+```
+
+::: {.fragment .takeaway}
+Version control is a record of deliberate changes—not a folder of `final_v3.py` files.
+:::
+
+::: {.notes}
+Git foundations: commit, diff, branch, recover. Anecdote: finding when an analysis changed.
+:::
+
+---
+
+## Git is not GitHub
+
+::: {.columns}
+::: {.column width="48%"}
+### Git
+
+- local version-control system
+- commits, history and branches
+- works without GitHub
+:::
+::: {.column width="52%"}
+### GitHub
+
+- hosts Git repositories
+- pull requests and collaboration
+- Actions and Dependabot
+:::
+:::
+
+::: {.fragment .takeaway}
+**Git tracks changes. GitHub hosts and helps collaborate on them.**
+:::
+
+::: {.notes}
+Explain the difference. GitHub will reappear when demonstrating CI and Dependabot.
+:::
+
+---
+
+## Reproducibility starts with the environment
+
+```text
+              Project
+                 │
+        ┌────────┴────────┐
+        │                 │
+  pyproject.toml       uv.lock
+        │                 │
+  what it needs      exact resolution
+```
+
+```bash
+uv sync
+uv run python analysis.py
+```
+
+::: {.fragment .takeaway}
+Move knowledge **from the state of my laptop into the repository**.
+:::
+
+::: {.notes}
+`demo-next` -> 01-uv.
+Run `uv sync`, then `uv run python analysis.py`.
+Anecdote slot: dependency/environment problem from a real project.
+:::
+
+---
+
+## Humans are bad linters
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ...
+data = data[data["correct"] == True]
+```
+
+::: {.fragment}
+```bash
+uv run ruff check .
+uv run ruff check . --fix
+uv run ruff format .
+git diff
+```
+:::
+
+::: {.fragment .takeaway}
+If a computer can identify and fix something reliably, don't spend human attention on it.
+:::
+
+::: {.notes}
+`demo-next` -> 02-ruff.
+Run Ruff and let it fail. Then --fix, format, and show git diff.
+Distinguish formatter (appearance) from linter (suspicious/problematic constructs).
+:::
+
+---
+
+## Make assumptions explicit
+
+::: {.columns}
+::: {.column width="45%"}
+```python
+def analyse(file):
+    ...
+```
+:::
+
+::: {.column width="55%"}
+```python
+def analyse(
+    file: Path,
+) -> list[tuple[str, float]]:
+    ...
+```
+:::
+:::
+
+::: {.fragment}
+Which interface would you rather discover in somebody else's code?
+:::
+
+::: {.notes}
+`demo-next` -> 03-types.
+Temporarily pass a string instead of Path:
+`data_file = "data/results.csv"; results = analyse(data_file)`.
+Run `uv run pyright`; fix with Path and rerun.
+Keep pandas typing complications out of the live explanation.
+:::
+
+---
+
+## Pyright: catch disagreement before execution
+
+```python
+data_file = "data/results.csv"
+results = analyse(data_file)
+```
+
+```text
+                 ┌──────── expected Path
+"data/results.csv" ────────✗
+```
+
+::: {.fragment}
+```python
+data_file = Path("data/results.csv")
+results = analyse(data_file)
+```
+:::
+
+::: {.fragment .takeaway}
+Types make interfaces useful to **people and tools**.
+:::
+
+---
+
+## “Just one more option…”
+
+```text
+Analyse RTs
+    │
+    ├── exclude errors?
+    ├── trim?
+    ├── mean or median?
+    ├── exclude another case?
+    └── just one more option...
+```
+
+::: {.fragment}
+```bash
+uv run pyright       # ✓
+uv run ruff check .  # ✗ C901
+```
+:::
+
+::: {.takeaway .fragment}
+Nobody deliberately writes the horrible 200-line function. **Complexity accumulates.**
+:::
+
+::: {.notes}
+`demo-next` -> 04-complexity.
+First run Pyright: it should pass. Then Ruff: C901 should fail.
+Anecdote slot: function that became frightening to modify.
+:::
+
+---
+
+## So… is it correct?
+
+- Reproducible environment ✓
+- Formatted and linted ✓
+- Type checked ✓
+- Complexity flagged for refactoring ✓
+
+::: {.fragment .big-question}
+**Is the answer right?**
+:::
+
+::: {.fragment}
+**We don't know.**
+
+None of those tools knows what a reaction time means.
+:::
+
+---
+
+## Types aren't domain knowledge
+
+```text
+participant    condition    reaction_time_ms
+P01            control             -250
+```
+
+| Question | Verdict |
+|---|:---:|
+| Valid number? | ✓ |
+| Valid float? | ✓ |
+| Ruff? | ✓ |
+| Pyright? | ✓ |
+| Scientifically plausible? | **✗** |
+
+::: {.fragment .takeaway}
+A value can have the correct type and still be wrong.
+:::
+
+---
+
+## Encode what “correct” means
+
+```python
+if (reaction_times <= 0).any():
+    raise ValueError(
+        "Reaction times must be greater than zero."
+    )
+```
+
+::: {.fragment}
+```python
+def test_negative_reaction_times_are_rejected():
+    # synthetic test data containing -250 ms
+    ...
+```
+:::
+
+::: {.fragment}
+```bash
+uv run pytest
+```
+:::
+
+::: {.notes}
+`demo-next` -> 05-tests.
+Use synthetic invalid data for the domain-validation example.
+Do not edit raw data. Explain: if real raw data fail validation, investigate provenance or use a documented processing/correction step.
+:::
+
+---
+
+## Different tools catch different failures
+
+| Problem | Ruff | Pyright | Complexity | pytest |
+|---|:---:|:---:|:---:|:---:|
+| Unused import | ✓ | | | |
+| Wrong argument type | | ✓ | | |
+| Branch-heavy function | | | ✓ | |
+| Invalid domain value | | | | ✓* |
+| Wrong filtering logic | | | | ✓ |
+
+<span class="small muted">* Because we encoded the domain rule.</span>
+
+::: {.takeaway .fragment}
+There isn't one “code quality” tool. They answer different questions.
+:::
+
+---
+
+## Valid code can still be wrong
+
+Change:
+
+```python
+correct = data[data["correct"]]
+```
+
+into:
+
+```python
+correct = data[~data["correct"]]
+```
+
+::: {.fragment}
+```text
+Ruff       ✓
+Pyright    ✓
+pytest     ✗
+```
+:::
+
+::: {.takeaway .fragment}
+The code is valid, formatted and type-correct. **It just does the opposite of what I intended.**
+:::
+
+::: {.notes}
+This is the strongest live demo.
+At 05-tests, make the temporary inversion. Run Ruff, Pyright, then pytest.
+Use `demo-reset` afterwards.
+:::
+
+---
+
+## There's still a bug in the system
+
+```text
+Developer
+    │
+    │  remember to run...
+    ▼
+ ┌─────────┐
+ │ Ruff    │
+ │ Pyright │
+ │ pytest  │
+ └─────────┘
+```
+
+::: {.fragment .big-question}
+The fragile component is **remember**.
+:::
+
+---
+
+## Automate the discipline
+
+```text
+git commit
+    │
+    ▼
+pre-commit
+    │
+    ├── Ruff
+    ├── Pyright
+    └── pytest
+```
+
+::: {.fragment}
+```bash
+git commit -m "Demonstrate pre-commit"
+```
+:::
+
+::: {.fragment .takeaway}
+Make the easiest workflow the correct workflow.
+:::
+
+::: {.notes}
+`demo-next` -> 06-precommit.
+Add an unused import, stage it, attempt commit; hook should stop it.
+Then mention `git commit --no-verify` to motivate CI.
+:::
+
+---
+
+## Your laptop isn't the authority
+
+```text
+              GitHub
+                │
+                ▼
+          fresh environment
+                │
+       ┌────────┼────────┐
+       ▼        ▼        ▼
+     Ruff    Pyright   pytest
+       │        │        │
+       └────────┼────────┘
+                ▼
+              ✓ / ✗
+```
+
+::: {.takeaway .fragment}
+Local automation improves my workflow. **CI independently verifies the shared project.**
+:::
+
+::: {.notes}
+`demo-next` -> 07-ci.
+Use a prepared branch or screenshot/video backup. Demonstrate a --no-verify commit being rejected by GitHub Actions.
+:::
+
+---
+
+## Software doesn't stop changing
+
+```text
+                 time →
+
+Python       ─────────────────►
+pandas       ─────────────────►
+Ruff         ─────────────────►
+Actions      ─────────────────►
+your code    ──────────────────
+```
+
+::: {.fragment}
+```text
+Dependency update
+       │
+       ▼
+automatic PR
+       │
+       ▼
+       CI
+       │
+       ▼
+Do the tests still pass?
+```
+:::
+
+::: {.notes}
+`demo-next` -> 08-dependabot.
+Show a prepared Dependabot PR rather than waiting for one live.
+Message: automated updates become safer because tests and CI already exist.
+:::
+
+---
+
+## Give the project a vocabulary
+
+Before:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pyright
+uv run pytest
+uv run python -m rt_analysis.figure
+```
+
+::: {.fragment}
+After:
+
+```bash
+make check
+make figure
+```
+:::
+
+::: {.takeaway .fragment}
+A Makefile gives the project a **vocabulary**.
+:::
+
+::: {.notes}
+`demo-next` -> 09-final.
+Run `make check`, then `make figure`.
+Anecdote slot: forgetting the sequence required to regenerate an analysis/output.
+:::
+
+---
+
+## Reduce friction
+
+```text
+Good practice + unnecessary friction
+                │
+                ▼
+        eventually gets skipped
+```
+
+::: {.fragment}
+**Make** — project-level shortcuts
+
+**Espanso** — personal repetitive-text shortcuts
+:::
+
+::: {.fragment .takeaway}
+Make desirable behaviour cheap.
+:::
+
+::: {.notes}
+Show one real Espanso shortcut from your workflow. Keep this brief.
+:::
+
+---
+
+## Can you reproduce Figure 1 now?
+
+::: {.columns}
+::: {.column width="38%"}
+### Before
+
+```text
+analysis.py
+data/
+└── results.csv
+```
+:::
+
+::: {.column width="62%"}
+### After
+
+```text
+.github/
+data/
+src/
+└── rt_analysis/
+tests/
+.pre-commit-config.yaml
+Makefile
+README.md
+pyproject.toml
+uv.lock
+```
+:::
+:::
+
+::: {.fragment}
+```bash
+uv sync
+make check
+make figure
+```
+:::
+
+---
+
+## Which project is simpler?
+
+::: {.columns}
+::: {.column width="45%"}
+### The first
+
+- fewer files
+- fewer concepts
+- quicker to start
+:::
+
+::: {.column width="55%"}
+### The second
+
+- environment encoded
+- assumptions tested
+- checks automated
+- workflow documented
+:::
+:::
+
+::: {.fragment .big-question}
+The first has fewer files.
+
+**The second has fewer unstated assumptions.**
+:::
+
+---
+
+## The same ideas exist elsewhere
+
+| Purpose | Python | JS / TS | R | Praat |
+|---|---|---|---|---|
+| Environment/deps | uv | pnpm / npm | renv | manual |
+| Format/lint | Ruff | ESLint + Prettier | lintr + styler | conventions |
+| Types | Pyright | TypeScript | limited | — |
+| Complexity | Ruff C901 | ESLint | cyclocomp | manual |
+| Tests | pytest | Vitest / Jest | testthat | regression scripts |
+| Hooks | pre-commit | Husky / lint-staged | pre-commit | external |
+| CI | GitHub Actions | GitHub Actions | GitHub Actions | possible externally |
+| Updates | Dependabot | Dependabot | ecosystem-dependent | manual |
+| Tasks | Make | Make / npm scripts | Make | Make |
+
+::: {.takeaway .fragment}
+Don't learn the brand names. **Learn the problems they solve.**
+:::
+
+---
+
+## Where should I start?
+
+::: {.incremental}
+1. **Git + reproducible environment**
+2. **Formatter / linter**
+3. **Tests**
+4. **Types** where useful
+5. **Pre-commit**
+6. **CI** as the project becomes shared/important
+7. **Dependency and task automation**
+:::
+
+::: {.fragment .takeaway}
+Adopt tooling when you understand the problem it is solving.
+:::
+
+---
+
+## Move failures earlier
+
+```text
+while typing       Ruff / Pyright
+                        │
+                        ▼
+before commit       tests / complexity
+                        │
+                        ▼
+at commit            pre-commit
+                        │
+                        ▼
+after push               CI
+                        │
+                        ▼
+later              collaborator / user
+                        │
+                        ▼
+latest             published result
+```
+
+::: {.fragment}
+**Catch mistakes sooner.**  
+**Make assumptions explicit.**  
+**Automate what you'll forget.**  
+**Make the correct workflow easy.**
+:::
+
+::: {.notes}
+Closing message: professional tooling is largely about moving failures earlier and reducing hidden assumptions.
+:::
