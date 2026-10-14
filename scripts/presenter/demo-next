@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-#
-# demo-next: Reset the demo repository and advance to the next demo tag.
-#
-# WARNING: This deliberately discards tracked and untracked changes.
-# Only use it in the disposable demonstration repository.
-
+# demo-next: Discard demo changes and advance to the next demo tag.
+# WARNING: Use only in the disposable rt-demo presentation checkout.
 set -euo pipefail
-
 TAGS=(
     "00-start"
     "01-uv"
@@ -19,54 +14,50 @@ TAGS=(
     "08-dependabot"
     "09-final"
 )
-
-# Ensure we're inside a Git repository.
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     echo "Error: not inside a Git repository." >&2
     exit 1
 }
-
-# Determine which configured tag HEAD currently corresponds to.
-current=""
-for tag in "${TAGS[@]}"; do
-    if [[ "$(git rev-parse HEAD)" == "$(git rev-parse "$tag^{commit}")" ]]; then
-        current="$tag"
+clean_demo_artifacts() {
+    # Remove only known generated artefacts that can survive Git tag switches
+    # because they are ignored. Deliberately preserve .venv and other local files.
+    find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+    rm -rf .pytest_cache .ruff_cache
+    rm -f figure1.png
+}
+clean_worktree() {
+    # WARNING: deliberately discards tracked and ordinary untracked changes.
+    git reset --hard
+    git clean -fd
+    clean_demo_artifacts
+}
+current_commit="$(git rev-parse HEAD)"
+current_index=""
+for i in "${!TAGS[@]}"; do
+    tag="${TAGS[$i]}"
+    tag_commit="$(git rev-parse "$tag^{commit}" 2>/dev/null)" || {
+        echo "Error: demo tag does not exist: $tag" >&2
+        exit 1
+    }
+    if [[ "$current_commit" == "$tag_commit" ]]; then
+        current_index="$i"
         break
     fi
 done
-
-if [[ -z "$current" ]]; then
-    echo "Error: HEAD is not at one of the demo tags." >&2
-    echo "Use: git switch --detach ${TAGS[0]}" >&2
+if [[ -z "$current_index" ]]; then
+    echo "Error: HEAD is not at one of the configured demo tags." >&2
     exit 1
 fi
-
-# Find the next tag.
-next=""
-for i in "${!TAGS[@]}"; do
-    if [[ "${TAGS[$i]}" == "$current" ]]; then
-        if (( i + 1 < ${#TAGS[@]} )); then
-            next="${TAGS[$((i + 1))]}"
-        fi
-        break
-    fi
-done
-
-if [[ -z "$next" ]]; then
+current="${TAGS[$current_index]}"
+if (( current_index + 1 >= ${#TAGS[@]} )); then
     echo "Already at final demo stage: $current"
     exit 0
 fi
-
-echo "Demo stage:"
-echo "  $current -> $next"
-echo
+next="${TAGS[$((current_index + 1))]}"
+echo "Demo stage: $current -> $next"
 echo "Discarding demo changes..."
-
-git reset --hard
-git clean -fd
-
+clean_worktree
 echo "Switching to $next..."
 git switch --detach "$next"
-
-echo
+clean_demo_artifacts
 echo "Now at: $next"

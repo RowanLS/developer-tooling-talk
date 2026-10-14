@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-#
-# demo-back: Reset the demo repository and return to the previous demo tag.
-#
-# WARNING: This deliberately discards tracked and untracked changes.
-# Only use it in the disposable demonstration repository.
-
+# demo-back: Discard demo changes and return to the previous demo tag.
+# WARNING: Use only in the disposable rt-demo presentation checkout.
 set -euo pipefail
-
 TAGS=(
     "00-start"
     "01-uv"
@@ -19,59 +14,50 @@ TAGS=(
     "08-dependabot"
     "09-final"
 )
-
-# Ensure we're inside a Git repository.
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     echo "Error: not inside a Git repository." >&2
     exit 1
 }
-
-# Get the current commit once.
+clean_demo_artifacts() {
+    # Remove only known generated artefacts that can survive Git tag switches
+    # because they are ignored. Deliberately preserve .venv and other local files.
+    find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+    rm -rf .pytest_cache .ruff_cache
+    rm -f figure1.png
+}
+clean_worktree() {
+    # WARNING: deliberately discards tracked and ordinary untracked changes.
+    git reset --hard
+    git clean -fd
+    clean_demo_artifacts
+}
 current_commit="$(git rev-parse HEAD)"
-
-# Find which configured tag corresponds to HEAD.
-current=""
 current_index=""
-
 for i in "${!TAGS[@]}"; do
     tag="${TAGS[$i]}"
-
-    # Give a useful error if a configured tag doesn't exist.
-    if ! tag_commit="$(git rev-parse "$tag^{commit}" 2>/dev/null)"; then
+    tag_commit="$(git rev-parse "$tag^{commit}" 2>/dev/null)" || {
         echo "Error: demo tag does not exist: $tag" >&2
         exit 1
-    fi
-
+    }
     if [[ "$current_commit" == "$tag_commit" ]]; then
-        current="$tag"
         current_index="$i"
         break
     fi
 done
-
-if [[ -z "$current" ]]; then
+if [[ -z "$current_index" ]]; then
     echo "Error: HEAD is not at one of the configured demo tags." >&2
     exit 1
 fi
-
-# Don't move before the first stage.
+current="${TAGS[$current_index]}"
 if (( current_index == 0 )); then
     echo "Already at first demo stage: $current"
     exit 0
 fi
-
 previous="${TAGS[$((current_index - 1))]}"
-
-echo "Demo stage:"
-echo "  $current -> $previous"
-echo
+echo "Demo stage: $current -> $previous"
 echo "Discarding demo changes..."
-
-git reset --hard
-git clean -fd
-
+clean_worktree
 echo "Switching to $previous..."
 git switch --detach "$previous"
-
-echo
+clean_demo_artifacts
 echo "Now at: $previous"

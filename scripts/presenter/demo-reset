@@ -1,15 +1,29 @@
 #!/usr/bin/env bash
-#
-# demo-reset: Discard all changes and restore the current demo tag.
-
+# demo-reset: Discard demo changes and restore the current demo tag.
+# WARNING: Use only in the disposable rt-demo presentation checkout.
 set -euo pipefail
-
-tag="$(git describe --tags --exact-match HEAD 2>/dev/null)" || {
-    echo "Error: HEAD is not exactly at a tag." >&2
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+    echo "Error: not inside a Git repository." >&2
     exit 1
 }
-
+tag="$(git describe --tags --exact-match HEAD 2>/dev/null)" || {
+    echo "Error: HEAD is not exactly at a demo tag." >&2
+    exit 1
+}
+clean_demo_artifacts() {
+    # Remove only known generated artefacts that can survive Git tag switches
+    # because they are ignored. Deliberately preserve .venv and other local files.
+    find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+    rm -rf .pytest_cache .ruff_cache
+    rm -f figure1.png
+}
+clean_worktree() {
+    # WARNING: deliberately discards tracked and ordinary untracked changes.
+    git reset --hard
+    git clean -fd
+    clean_demo_artifacts
+}
 git reset --hard "$tag"
 git clean -fd
-
+clean_demo_artifacts
 echo "Reset to: $tag"
