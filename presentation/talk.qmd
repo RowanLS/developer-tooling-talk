@@ -1130,6 +1130,7 @@ Adopt tooling when you understand the problem it is solving.
 
 ::: {.notes}
 **What to say**
+
 - Do not leave this talk and install nine tools simply because I've mentioned them.
 - Adopt tooling when you understand the problem it is solving.
 
@@ -1211,12 +1212,14 @@ Walk down the diagram:
 - Without those layers, the first person to notice may be a collaborator, a user, or—worst of all—someone looking at a published result.
 
 The earlier a problem is found:
+
 - the relevant code is more likely still to be in my head;
 - fewer people depend on the broken behaviour;
 - there is less history to investigate;
 - fixing it is generally less disruptive.
 
 **But don't overclaim**
+
 This isn't a claim that every bug becomes literally more expensive by some fixed amount at every stage.
 
 The principle is simply that short feedback loops are usually easier to work with.
@@ -1245,4 +1248,71 @@ Automate what you'll forget.
 Make the correct workflow easy.
 
 Then stop. Don't add another summary of the tools.
+:::
+
+---
+
+## Try it yourself
+
+::: {.columns}
+
+::: {.column width="62%"}
+
+The slides and complete demo are on GitHub:
+
+**github.com/RowanLS/dev-tools-demo**
+
+Clone everything, including the demo repository:
+
+```bash
+git clone --recurse-submodules \
+  https://github.com/YOUR-USERNAME/dev-tools-demo.git
+
+cd dev-tools-demo/rt-demo
+git switch --detach 00-start
+```
+
+Then work through:
+
+```text
+00-start → 01-uv → 02-ruff → 03-types → 04-complexity
+         → 05-tests → 06-precommit → 07-ci
+         → 08-dependabot → 09-final
+```
+
+:::
+
+::: {.column width="38%"}
+
+![](images/repo-qr.png){fig-alt="QR code linking to the presentation repository" width="85%"}
+
+**Scan to get the repository**
+
+:::
+
+:::
+
+::: {.fragment .takeaway}
+Break things. Run the tools. Use `git diff` to see what changed.
+:::
+
+::: {.notes}
+Final practical call to action.
+
+The parent repository contains:
+- the presentation;
+- instructions;
+- the `rt-demo` repository as a submodule.
+
+Participants should clone with `--recurse-submodules`.
+
+Suggest starting at `00-start` and moving through the tags manually.
+
+Useful commands:
+`git switch --detach 05-tests`
+`git diff 04-complexity 05-tests`
+
+Do NOT recommend the presenter demo scripts: those deliberately discard changes.
+
+Leave this slide visible during questions so people have time to scan the QR code.
 :::

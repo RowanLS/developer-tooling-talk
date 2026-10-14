@@ -225,7 +225,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>Demo: <code>demo-start</code> (00-start), then run <code>python analysis.py</code>.</p>
 <p>Main point: - The script working for me is not enough to make the analysis reproducible. - The repository does not yet describe the environment needed to run it.</p>
 <p>Ask: - Which Python version? - Which pandas? - Which matplotlib? - How do you install them?</p>
-<p>Do not get sidetracked into philosophical definitions of reproducibility. Here I mean the practical question: can another person take this repository and regenerate the output?</p>
+<p>Key Practical Question: can another person take this repository and regenerate the output?</p>
 <p>Transition: First, before adding any tooling, I need to know what changed and why. That means version control.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -246,10 +246,17 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>Version control is a record of deliberate changes—not a folder of <code>final_v3.py</code> files.</p>
 </div>
 <aside class="notes">
-<p>Main point: Version control gives us a history of deliberate changes to the project.</p>
-<p>Git gives me: - commits: meaningful snapshots; - diffs: exactly what changed; - branches: somewhere to experiment; - recovery: the ability to return to known states.</p>
+<p>Main point:</p>
+<p>Version control / Back up is important because of: - computer death - accidental deletion - mistakes</p>
+<p>Version control gives us a history of deliberate changes to the project.</p>
+<ul>
+<li>Git gives me:*</li>
+<li>commits: meaningful snapshots;</li>
+<li>diffs: exactly what changed;</li>
+<li>branches: somewhere to experiment;</li>
+<li>recovery: the ability to return to known states.</li>
+</ul>
 <p>Important distinction: Git is not primarily a backup system. Its value is the structured history of changes and the ability to reason about how the project evolved.</p>
-<p>Anecdote: Finding when an analysis changed / recovering an earlier implementation.</p>
 <p>This entire live demo relies on Git: every stage is a tagged historical version of the same project.</p>
 <p>Transition: Git itself is local. GitHub is a separate thing built around Git repositories.</p>
 <style type="text/css">
@@ -428,7 +435,6 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>Main point: Pyright performs static analysis: it reasons about the code without needing to execute this particular path.</p>
 <p>The function says it expects a Path. The caller supplies a str. Both are individually valid Python objects, but the interfaces disagree.</p>
 <p>This is deliberately a simple example. Real value comes when these interfaces are separated across modules and the mismatch is less visually obvious.</p>
-<p>Do not get dragged into pandas typing here. Pandas is highly dynamic and its types can be complicated. The teaching point is the simple function boundary.</p>
 <p>Transition: Types can tell us whether components agree. They cannot tell us whether our design has become unnecessarily difficult to understand.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -573,11 +579,13 @@ P01            control             -250</code></pre>
 </section>
 <section id="encode-what-correct-means" class="slide level2">
 <h2>Encode what “correct” means</h2>
+<p><strong>1. Encode the domain rule</strong></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (reaction_times <span class="op">&lt;=</span> <span class="dv">0</span>).<span class="bu">any</span>():</span>
 <span id="cb18-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
 <span id="cb18-3"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Reaction times must be greater than zero."</span></span>
 <span id="cb18-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
+<p><strong>2. Encode the expected behaviour</strong></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_negative_reaction_times_are_rejected():</span>
 <span id="cb19-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># synthetic test data containing -250 ms</span></span>
 <span id="cb19-3"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -586,13 +594,26 @@ P01            control             -250</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
-<p><code>demo-next</code> -&gt; 05-tests. Use synthetic invalid data for the domain-validation example. Do not edit raw data. Explain: if real raw data fail validation, investigate provenance or use a documented processing/correction step.</p>
-<p>Main point: Tests let us turn expectations into executable checks.</p>
-<p>There are two pieces here: 1. application validation rejects impossible input; 2. pytest verifies that validation behaves as intended.</p>
-<p>The -250 value is SYNTHETIC TEST DATA. It is deliberately not an edit to the raw dataset.</p>
-<p>Important research-practice point: Raw data should remain immutable. If real data fail validation, investigate provenance and make any correction or exclusion explicit and documented.</p>
-<p>pytest itself knows nothing about reaction times. The domain rule comes from us; pytest repeatedly checks that the software implements it.</p>
-<p>Transition: This is why we need several tools rather than one universal “quality checker”.</p>
+<p><code>demo-next</code> → <code>05-tests</code>.</p>
+<p><strong>Main point:</strong> Neither Python nor Pyright knows what a scientifically valid reaction time is. We have to encode that domain knowledge ourselves.</p>
+<p>There are three steps here:</p>
+<ol type="1">
+<li><p><strong>State the domain rule in the application.</strong> We know a reaction time cannot be negative, so <code>validate_data()</code> rejects values <code>&lt;= 0</code>.</p>
+<p>This is <strong>validation</strong>, not testing. Its job is to stop the analysis rather than silently process impossible input.</p></li>
+<li><p><strong>Turn the expected behaviour into a test.</strong> The test constructs a small synthetic dataset containing <code>-250 ms</code> and says:</p>
+<blockquote>
+<p>When this data is validated, I expect a <code>ValueError</code>.</p>
+</blockquote>
+<p>The <code>-250</code> value is <strong>synthetic test data</strong>. We are not introducing an error into the real dataset.</p></li>
+<li><p><strong>Run the expectation automatically.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>pytest checks that the application still behaves as we specified.</p></li>
+</ol>
+<p><strong>Why test something we’ve just implemented?</strong> Because the test preserves that expectation when the code changes later. If somebody refactors <code>validate_data()</code> and accidentally removes the check, the test should fail.</p>
+<p><strong>Important distinction:</strong> pytest does not know that negative reaction times are impossible. The domain knowledge comes from us. pytest gives us a repeatable way to check that the software continues to implement that knowledge.</p>
+<p><strong>Research-practice point:</strong> Raw data should remain immutable. If real observations fail validation, investigate their provenance. Any justified correction or exclusion should happen through an explicit, documented processing step rather than silently editing the source data.</p>
+<p><strong>Key line:</strong> We’ve moved another assumption from <strong>something I know</strong> to <strong>something the project can check</strong>.</p>
+<p><strong>Transition:</strong> And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -684,9 +705,15 @@ P01            control             -250</code></pre>
 <section id="valid-code-can-still-be-wrong" class="slide level2">
 <h2>Valid code can still be wrong</h2>
 <p>Change:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="" aria-hidden="true" tabindex="-1"></a>correct <span class="op">=</span> data[data[<span class="st">"correct"</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
+<span id="cb22-2"><a href="" aria-hidden="true" tabindex="-1"></a>        data[<span class="st">"correct"</span>],</span>
+<span id="cb22-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
+<span id="cb22-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>into:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="" aria-hidden="true" tabindex="-1"></a>correct <span class="op">=</span> data[<span class="op">~</span>data[<span class="st">"correct"</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
+<span id="cb23-2"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="op">~</span>data[<span class="st">"correct"</span>],</span>
+<span id="cb23-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
+<span id="cb23-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <pre class="text"><code>Ruff       ✓
 Pyright    ✓
@@ -696,11 +723,12 @@ pytest     ✗</code></pre>
 <p>The code is valid, formatted and type-correct. <strong>It just does the opposite of what I intended.</strong></p>
 </div>
 <aside class="notes">
-<p>This is the strongest live demo. At 05-tests, make the temporary inversion. Run Ruff, Pyright, then pytest. Use <code>demo-reset</code> afterwards.</p>
+<p>At 05-tests, make the temporary inversion in def clean_trials(). Run Ruff, Pyright, then pytest. Use <code>demo-reset</code> afterwards.</p>
 <p>Why this demo matters: <code>~data["correct"]</code> is valid Python and type-consistent. Static tools cannot infer that I intended to retain correct trials rather than incorrect ones.</p>
 <p>The test contains behavioural knowledge that the generic tools don’t have.</p>
 <p>After pytest fails: Don’t rush. Let the failure sit on screen for a moment.</p>
 <p>Then <code>demo-reset</code>.</p>
+<p>Tests are useful for: - validation - regression</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -756,7 +784,7 @@ pre-commit
     ├── Pyright
     └── pytest</code></pre>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Demonstrate pre-commit"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Demonstrate pre-commit"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="fragment takeaway">
 <p>Make the easiest workflow the correct workflow.</p>
@@ -800,7 +828,7 @@ pre-commit
 <aside class="notes">
 <p><code>demo-next</code> -&gt; 07-ci. Use a prepared branch or screenshot/video backup. Demonstrate a –no-verify commit being rejected by GitHub Actions.</p>
 <p>CI = continuous integration.</p>
-<p>For this project: a push or pull request causes GitHub Actions to create a fresh runner and run our checks there.</p>
+<p>At the previous stage, pre-commit stopped me locally. But local hooks can be bypassed with –no-verify, or someone may never install them. So I deliberately bypassed the hook and pushed the same regression to this PR. Ruff passes. Pyright passes. pytest fails. The important difference is that this check is now being run by the shared repository, not by my development environment. If we make CI a required check, this PR cannot be merged until the problem is fixed.</p>
 <p>Why this matters: - independent of whether I remembered; - independent of my editor; - independent of my local hooks; - gives collaborators one shared result.</p>
 <p>CI doesn’t magically make tests better. It makes running the agreed checks consistent and visible.</p>
 <p>Pre-commit: fast local feedback. CI: independent shared verification.</p>
@@ -860,15 +888,15 @@ Do the tests still pass?</code></pre>
 <section id="give-the-project-a-vocabulary" class="slide level2">
 <h2>Give the project a vocabulary</h2>
 <p>Before:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .</span>
-<span id="cb30-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format <span class="at">--check</span> .</span>
-<span id="cb30-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright</span>
-<span id="cb30-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span>
-<span id="cb30-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> rt_analysis.figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .</span>
+<span id="cb31-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format <span class="at">--check</span> .</span>
+<span id="cb31-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright</span>
+<span id="cb31-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span>
+<span id="cb31-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> rt_analysis.figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <p>After:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
-<span id="cb31-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
+<span id="cb32-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="takeaway fragment">
 <p>A Makefile gives the project a <strong>vocabulary</strong>.</p>
@@ -911,9 +939,22 @@ Do the tests still pass?</code></pre>
 <p>Make desirable behaviour cheap.</p>
 </div>
 <aside class="notes">
-<p><strong>What to say</strong> - This is a broader productivity principle rather than another code-quality layer. - Make reduces project-level friction by giving workflows names. - Espanso reduces personal repetitive typing through text expansion. - I use Espanso for things I type repeatedly: commands, boilerplate, paths, text fragments, or other shortcuts. - Small amounts of friction matter because repeated annoying steps are precisely the ones people eventually skip. - The goal isn’t to automate everything. Automation has its own maintenance cost. - Automate things that are repetitive, predictable, and sufficiently common that removing the friction is worthwhile.</p>
-<p><strong>Demo</strong> Show one real Espanso shortcut: gpo. Keep this brief.</p>
-<p><strong>Transition</strong> - We’ve now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?</p>
+<p><strong>What to say</strong></p>
+<ul>
+<li>This is a broader productivity principle rather than another code-quality layer.</li>
+<li>Make reduces project-level friction by giving workflows names.</li>
+<li>Espanso reduces personal repetitive typing through text expansion.</li>
+<li>I use Espanso for things I type repeatedly: commands, boilerplate, paths, text fragments, or other shortcuts.</li>
+<li>Small amounts of friction matter because repeated annoying steps are precisely the ones people eventually skip.</li>
+<li>The goal isn’t to automate everything. Automation has its own maintenance cost.</li>
+<li>Automate things that are repetitive, predictable, and sufficiently common that removing the friction is worthwhile.</li>
+</ul>
+<p><strong>Demo</strong></p>
+<p>Show one real Espanso shortcut: gpo. Keep this brief. ;gpo expands to -&gt; git push origin <code>git rev-parse --abbrev-ref HEAD</code></p>
+<p><strong>Transition</strong></p>
+<ul>
+<li>We’ve now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -948,24 +989,35 @@ pyproject.toml
 uv.lock</code></pre>
 </div></div>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb35-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
-<span id="cb35-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
-<span id="cb35-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<aside class="notes">
-<p><strong>Return explicitly to the opening question.</strong></p>
-<p><strong>What to say</strong> - At the beginning we had a Python script and a CSV. It worked for me, but much of the knowledge required to run it existed only on my machine or in my head. - The scientific analysis itself hasn’t become more sophisticated. - What has changed is that the assumptions surrounding it have become explicit.</p>
-<p>Walk through the final commands:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb36-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
 <span id="cb36-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
 <span id="cb36-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<aside class="notes">
+<p><strong>Return explicitly to the opening question.</strong></p>
+<p><strong>What to say</strong></p>
+<ul>
+<li>At the beginning we had a Python script and a CSV. It worked for me, but much of the knowledge required to run it existed only on my machine or in my head.</li>
+<li>The scientific analysis itself hasn’t become more sophisticated.</li>
+<li>What has changed is that the assumptions surrounding it have become explicit.</li>
+</ul>
+<p>Walk through the final commands:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb37-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
+<span id="cb37-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>uv sync: establish the specified software environment.</li>
 <li>make check: run the project’s automated quality and behavioural checks.</li>
 <li>make figure: provide a documented route from the inputs to the output.</li>
-<li>A new collaborator now has a much better chance of reproducing the workflow without asking me how my laptop happens to be configured. Important qualification</li>
+<li>A new collaborator now has a much better chance of reproducing the workflow without asking me how my laptop happens to be configured.</li>
+</ul>
+<p>Important qualification</p>
+<ul>
 <li>This does not magically guarantee scientific reproducibility. Data provenance, operating systems, external services, randomness, hardware and many other factors may matter in real projects.</li>
-<li>What we’ve done is systematically remove a large number of hidden software assumptions. Transition</li>
+<li>What we’ve done is systematically remove a large number of hidden software assumptions.</li>
+</ul>
+<p>Transition</p>
+<ul>
 <li>But there is an obvious objection: look how many files we’ve added. Have we actually made the project simpler?</li>
 </ul>
 <style type="text/css">
@@ -1112,13 +1164,49 @@ uv.lock</code></pre>
 <p>Don’t learn the brand names. <strong>Learn the problems they solve.</strong></p>
 </div>
 <aside class="notes">
-<p><strong>What to say</strong> - These are rough ecosystem equivalents, not exact one-to-one replacements. - Don’t get hung up on the product names. The transferable concepts are the important part.</p>
-<p>Walk across the rows rather than every cell: - environment/dependency management; - formatting and linting; - static checking where the language supports it; - testing; - automated hooks; - CI; - dependency maintenance; - task automation.</p>
-<p><strong>JavaScript / TypeScript</strong> - npm/pnpm manage dependencies and lockfiles. - ESLint and Prettier cover similar linting/formatting concerns. - TypeScript itself provides the static type system. - Vitest/Jest fill the testing role.</p>
-<p><strong>R</strong> - <code>renv</code> is particularly relevant to research because it captures project dependencies. - <code>lintr</code>, <code>styler</code> and <code>testthat</code> provide familiar equivalents. - R is dynamically typed, so there isn’t a direct Pyright equivalent in common usage.</p>
-<p><strong>Praat</strong> - The ecosystem has fewer off-the-shelf equivalents. - That doesn’t make the principles irrelevant. - Version-control the scripts, keep procedures small, use known inputs/expected outputs for regression checks, document the workflow, and automate externally where practical.</p>
-<p><strong>Important</strong> - Don’t imply that every project needs every row of this table.</p>
-<p><strong>Transition</strong> - If somebody here currently uses none of this, where should they actually start?</p>
+<p><strong>What to say</strong></p>
+<ul>
+<li>These are rough ecosystem equivalents, not exact one-to-one replacements.</li>
+<li>Don’t get hung up on the product names. The transferable concepts are the important part.</li>
+</ul>
+<p>Walk across the rows rather than every cell:</p>
+<ul>
+<li>environment/dependency management;</li>
+<li>formatting and linting;</li>
+<li>static checking where the language supports it;</li>
+<li>testing;</li>
+<li>automated hooks;</li>
+<li>CI;</li>
+<li>dependency maintenance;</li>
+<li>task automation.</li>
+</ul>
+<p><strong>JavaScript / TypeScript</strong></p>
+<ul>
+<li>npm/pnpm manage dependencies and lockfiles.</li>
+<li>ESLint and Prettier cover similar linting/formatting concerns.</li>
+<li>TypeScript itself provides the static type system.</li>
+<li>Vitest/Jest fill the testing role.</li>
+</ul>
+<p><strong>R</strong></p>
+<ul>
+<li><code>renv</code> is particularly relevant to research because it captures project dependencies.</li>
+<li><code>lintr</code>, <code>styler</code> and <code>testthat</code> provide familiar equivalents.</li>
+<li>R is dynamically typed, so there isn’t a direct Pyright equivalent in common usage.</li>
+</ul>
+<p><strong>Praat</strong></p>
+<ul>
+<li>The ecosystem has fewer off-the-shelf equivalents.</li>
+<li>That doesn’t make the principles irrelevant.</li>
+<li>Version-control the scripts, keep procedures small, use known inputs/expected outputs for regression checks, document the workflow, and automate externally where practical.</li>
+</ul>
+<p><strong>Important</strong></p>
+<ul>
+<li>Don’t imply that every project needs every row of this table.</li>
+</ul>
+<p><strong>Transition</strong></p>
+<ul>
+<li>If somebody here currently uses none of this, where should they actually start?</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1146,7 +1234,11 @@ uv.lock</code></pre>
 <p>Adopt tooling when you understand the problem it is solving.</p>
 </div>
 <aside class="notes">
-<p><strong>What to say</strong> - Do not leave this talk and install nine tools simply because I’ve mentioned them. - Adopt tooling when you understand the problem it is solving.</p>
+<p><strong>What to say</strong></p>
+<ul>
+<li>Do not leave this talk and install nine tools simply because I’ve mentioned them.</li>
+<li>Adopt tooling when you understand the problem it is solving.</li>
+</ul>
 <p>Walk through the progression:</p>
 <ol type="1">
 <li><strong>Git</strong>
@@ -1228,8 +1320,15 @@ latest             published result</code></pre>
 <li>CI catches them when the project reaches the shared repository.</li>
 <li>Without those layers, the first person to notice may be a collaborator, a user, or—worst of all—someone looking at a published result.</li>
 </ul>
-<p>The earlier a problem is found: - the relevant code is more likely still to be in my head; - fewer people depend on the broken behaviour; - there is less history to investigate; - fixing it is generally less disruptive.</p>
-<p><strong>But don’t overclaim</strong> This isn’t a claim that every bug becomes literally more expensive by some fixed amount at every stage.</p>
+<p>The earlier a problem is found:</p>
+<ul>
+<li>the relevant code is more likely still to be in my head;</li>
+<li>fewer people depend on the broken behaviour;</li>
+<li>there is less history to investigate;</li>
+<li>fixing it is generally less disruptive.</li>
+</ul>
+<p><strong>But don’t overclaim</strong></p>
+<p>This isn’t a claim that every bug becomes literally more expensive by some fixed amount at every stage.</p>
 <p>The principle is simply that short feedback loops are usually easier to work with.</p>
 <p>There is a second theme as well: <strong>hidden knowledge</strong>.</p>
 <p>Across the talk we moved knowledge out of my head and into the project:</p>
@@ -1248,6 +1347,49 @@ latest             published result</code></pre>
 <p>Automate what you’ll forget.</p>
 <p>Make the correct workflow easy.</p>
 <p>Then stop. Don’t add another summary of the tools.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="try-it-yourself" class="slide level2">
+<h2>Try it yourself</h2>
+<div class="columns">
+<div class="column" style="width:62%;">
+<p>The slides and complete demo are on GitHub:</p>
+<p><strong>github.com/RowanLS/dev-tools-demo</strong></p>
+<p>Clone everything, including the demo repository:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--recurse-submodules</span> <span class="dt">\</span></span>
+<span id="cb39-2"><a href="" aria-hidden="true" tabindex="-1"></a>  https://github.com/YOUR-USERNAME/dev-tools-demo.git</span>
+<span id="cb39-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> dev-tools-demo/rt-demo</span>
+<span id="cb39-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">--detach</span> 00-start</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then work through:</p>
+<pre class="text"><code>00-start → 01-uv → 02-ruff → 03-types → 04-complexity
+         → 05-tests → 06-precommit → 07-ci
+         → 08-dependabot → 09-final</code></pre>
+</div><div class="column" style="width:38%;">
+<p><img data-src="images/repo-qr.png" style="width:85.0%" alt="QR code linking to the presentation repository"></p>
+<p><strong>Scan to get the repository</strong></p>
+</div></div>
+<div class="fragment takeaway">
+<p>Break things. Run the tools. Use <code>git diff</code> to see what changed.</p>
+</div>
+<aside class="notes">
+<p>Final practical call to action.</p>
+<p>The parent repository contains: - the presentation; - instructions; - the <code>rt-demo</code> repository as a submodule.</p>
+<p>Participants should clone with <code>--recurse-submodules</code>.</p>
+<p>Suggest starting at <code>00-start</code> and moving through the tags manually.</p>
+<p>Useful commands: <code>git switch --detach 05-tests</code> <code>git diff 04-complexity 05-tests</code></p>
+<p>Do NOT recommend the presenter demo scripts: those deliberately discard changes.</p>
+<p>Leave this slide visible during questions so people have time to scan the QR code.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
