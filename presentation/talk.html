@@ -223,10 +223,20 @@ Dr.&nbsp;Rowan Lindsay-Smith
 </div>
 <aside class="notes">
 <p>Demo: <code>demo-start</code> (00-start), then run <code>python analysis.py</code>.</p>
-<p>Main point: - The script working for me is not enough to make the analysis reproducible. - The repository does not yet describe the environment needed to run it.</p>
-<p>Ask: - Which Python version? - Which pandas? - Which matplotlib? - How do you install them?</p>
+<p>Main point:</p>
+<ul>
+<li>The script working for me is not enough to make the analysis reproducible.</li>
+<li>The repository does not yet describe the environment needed to run it.</li>
+</ul>
+<p>Ask:</p>
+<ul>
+<li>Which Python version?</li>
+<li>Which pandas?</li>
+<li>Which matplotlib?</li>
+<li>How do you install them?</li>
+</ul>
 <p>Key Practical Question: can another person take this repository and regenerate the output?</p>
-<p>Transition: First, before adding any tooling, I need to know what changed and why. That means version control.</p>
+<p>**Transition:<em>:</em> First, before adding any tooling, I need to know what changed and why. That means version control.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -247,18 +257,24 @@ Dr.&nbsp;Rowan Lindsay-Smith
 </div>
 <aside class="notes">
 <p>Main point:</p>
-<p>Version control / Back up is important because of: - computer death - accidental deletion - mistakes</p>
+<p>Version control / Back up is important because of:</p>
+<ul>
+<li>computer death</li>
+<li>accidental deletion</li>
+<li>mistakes</li>
+</ul>
 <p>Version control gives us a history of deliberate changes to the project.</p>
 <ul>
-<li>Git gives me:*</li>
-<li>commits: meaningful snapshots;</li>
-<li>diffs: exactly what changed;</li>
-<li>branches: somewhere to experiment;</li>
-<li>recovery: the ability to return to known states.</li>
+<li><p>Git gives me:*</p></li>
+<li><p>commits: meaningful snapshots;</p></li>
+<li><p>diffs: exactly what changed;</p></li>
+<li><p>branches: somewhere to experiment;</p></li>
+<li><p>recovery: the ability to return to known states.</p></li>
 </ul>
-<p>Important distinction: Git is not primarily a backup system. Its value is the structured history of changes and the ability to reason about how the project evolved.</p>
+<p><em>Important distinction:</em></p>
+<p>Git is not primarily a backup system. Its value is the structured history of changes and the ability to reason about how the project evolved.</p>
 <p>This entire live demo relies on Git: every stage is a tagged historical version of the same project.</p>
-<p>Transition: Git itself is local. GitHub is a separate thing built around Git repositories.</p>
+<p>**Transition:<em>:</em> Git itself is local. GitHub is a separate thing built around Git repositories.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -293,12 +309,25 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p><strong>Git tracks changes. GitHub hosts and helps collaborate on them.</strong></p>
 </div>
 <aside class="notes">
-<p>Main point: Git and GitHub are related but not interchangeable.</p>
-<p>Git: - software installed on my computer; - tracks repository history; - works completely offline; - GitHub did not invent Git.</p>
-<p>GitHub: - a service that can host Git repositories; - adds collaboration: pull requests, issues, permissions; - also provides services such as Actions and Dependabot.</p>
-<p>Useful test: I can use Git without GitHub. I cannot meaningfully use GitHub repositories without Git underneath them.</p>
+<p>Main point:</p>
+<p>Git and GitHub are related but not interchangeable.</p>
+<p>Git:</p>
+<ul>
+<li>software installed on my computer;</li>
+<li>tracks repository history;</li>
+<li>works completely offline;</li>
+<li>GitHub did not invent Git.</li>
+</ul>
+<p>GitHub:</p>
+<ul>
+<li>a service that can host Git repositories;</li>
+<li>adds collaboration: pull requests, issues, permissions;</li>
+<li>also provides services such as Actions and Dependabot.</li>
+</ul>
+<p>Useful test:</p>
+<p>I can use Git without GitHub. I cannot meaningfully use GitHub repositories without Git underneath them.</p>
 <p>GitHub will come back later when we need CI and dependency automation.</p>
-<p>Transition: Now that we can track changes, the first problem with our actual project is: can somebody reproduce its software environment?</p>
+<p>**Transition:<em>:</em> Now that we can track changes, the first problem with our actual project is: can somebody reproduce its software environment?</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -328,10 +357,22 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <aside class="notes">
 <p><code>demo-next</code> -&gt; 01-uv. Run <code>uv sync</code>, then <code>uv run python analysis.py</code>.</p>
 <p>Main point: The environment is part of the project, even though it isn’t application code.</p>
-<p>pyproject.toml: - describes the project and its direct dependencies; - human-maintained project configuration.</p>
-<p>uv.lock: - records the resolved dependency graph and versions; - generated rather than something I normally hand-edit.</p>
-<p>uv sync: - makes my local environment agree with the project/lockfile.</p>
-<p>Key phrase: We’re moving knowledge from “the state of my laptop” into version-controlled files.</p>
+<p>pyproject.toml:</p>
+<ul>
+<li>describes the project and its direct dependencies;</li>
+<li>human-maintained project configuration.</li>
+</ul>
+<p>uv.lock:</p>
+<ul>
+<li>records the resolved dependency graph and versions;</li>
+<li>generated rather than something I normally hand-edit.</li>
+</ul>
+<p>uv sync:</p>
+<ul>
+<li>makes my local environment agree with the project/lockfile.</li>
+</ul>
+<p>Key phrase:</p>
+<p>We’re moving knowledge from “the state of my laptop” into version-controlled files.</p>
 <p>Don’t claim that a lockfile guarantees perfect long-term reproducibility. It solves an important part of the problem, not every possible source of variation.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -362,11 +403,16 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>If a computer can identify and fix something reliably, don’t spend human attention on it.</p>
 </div>
 <aside class="notes">
-<p><code>demo-next</code> -&gt; 02-ruff. Run Ruff and let it fail. Then –fix, format, and show git diff. Main point: Use human attention for things requiring judgement; automate mechanical checks.</p>
-<p>Formatter: decides how code should look.</p>
-<p>Linter: analyses code for suspicious constructs, style violations and some likely bugs.</p>
+<p><code>demo-next</code> -&gt; 02-ruff. Run Ruff and let it fail. Then –fix, format, and show git diff.</p>
+<p>Main point:</p>
+<p>Use human attention for things requiring judgement; automate mechanical checks.</p>
+<p>Formatter:</p>
+<p>decides how code should look.</p>
+<p>Linter:</p>
+<p>analyses code for suspicious constructs, style violations and some likely bugs.</p>
 <p>Ruff does both, but they are conceptually different jobs.</p>
-<p>Important: Lint passing does NOT mean the program is correct. We’re gradually building different layers of checks.</p>
+<p>Important:</p>
+<p>Lint passing does NOT mean the program is correct. We’re gradually building different layers of checks.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -403,9 +449,15 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>The return annotation:</p>
 <pre><code>list[tuple[str, float]]</code></pre>
 <p>documents what callers can expect back.</p>
-<p>Benefits: - documentation for humans; - editor completion/navigation; - static analysis with Pyright; - mismatches can be detected before execution.</p>
+<p>Benefits:</p>
+<ul>
+<li>documentation for humans;</li>
+<li>editor completion/navigation;</li>
+<li>static analysis with Pyright;</li>
+<li>mismatches can be detected before execution.</li>
+</ul>
 <p>Type annotations are not runtime validation by themselves.</p>
-<p>Transition: Once we’ve written down those assumptions, Pyright can compare different parts of the program and tell us when they disagree.</p>
+<p>**Transition:<em>:</em> Once we’ve written down those assumptions, Pyright can compare different parts of the program and tell us when they disagree.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -435,7 +487,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>Main point: Pyright performs static analysis: it reasons about the code without needing to execute this particular path.</p>
 <p>The function says it expects a Path. The caller supplies a str. Both are individually valid Python objects, but the interfaces disagree.</p>
 <p>This is deliberately a simple example. Real value comes when these interfaces are separated across modules and the mismatch is less visually obvious.</p>
-<p>Transition: Types can tell us whether components agree. They cannot tell us whether our design has become unnecessarily difficult to understand.</p>
+<p>**Transition:<em>:</em> Types can tell us whether components agree. They cannot tell us whether our design has become unnecessarily difficult to understand.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -472,7 +524,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>The exact threshold is not a law of nature. For this demo I deliberately use a strict threshold so the problem is visible.</p>
 <p>Complexity metrics are signals for investigation, not proof that code is bad.</p>
 <p>Notice: Pyright passes. The interfaces are type-consistent. Ruff’s complexity check is answering a different question.</p>
-<p>Transition: We can make the code reproducible, tidy, typed and reasonably structured. But none of that answers the most important question…</p>
+<p>**Transition:<em>:</em> We can make the code reproducible, tidy, typed and reasonably structured. But none of that answers the most important question…</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -502,12 +554,18 @@ Dr.&nbsp;Rowan Lindsay-Smith
 </div>
 <aside class="notes">
 <p>Pause here.</p>
-<p>We’ve checked: - environment; - lint/style; - interfaces/types; - maintainability/complexity.</p>
+<p>We’ve checked:</p>
+<ul>
+<li>environment;</li>
+<li>lint/style;</li>
+<li>interfaces/types;</li>
+<li>maintainability/complexity.</li>
+</ul>
 <p>Ask: does any of that establish that our scientific calculation is right?</p>
 <p>No.</p>
 <p>These tools know about software structure. They do not know the scientific meaning of a reaction time.</p>
 <p>This is the pivot of the talk: software can be perfectly valid according to generic tooling and still be scientifically wrong.</p>
-<p>Transition: Consider a value of -250 ms.</p>
+<p>**Transition:<em>:</em> Consider a value of -250 ms.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -564,7 +622,7 @@ P01            control             -250</code></pre>
 <p>A type checker answers: “What kind of value is this?”</p>
 <p>Domain validation answers: “Is this value meaningful/allowed in this problem?”</p>
 <p>Don’t claim pytest somehow knows scientific truth. We have to encode the relevant scientific/domain assumptions ourselves.</p>
-<p>Transition: So we turn that assumption into executable validation and test it.</p>
+<p>**Transition:<em>:</em> So we turn that assumption into executable validation and test it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -613,7 +671,7 @@ P01            control             -250</code></pre>
 <p><strong>Important distinction:</strong> pytest does not know that negative reaction times are impossible. The domain knowledge comes from us. pytest gives us a repeatable way to check that the software continues to implement that knowledge.</p>
 <p><strong>Research-practice point:</strong> Raw data should remain immutable. If real observations fail validation, investigate their provenance. Any justified correction or exclusion should happen through an explicit, documented processing step rather than silently editing the source data.</p>
 <p><strong>Key line:</strong> We’ve moved another assumption from <strong>something I know</strong> to <strong>something the project can check</strong>.</p>
-<p><strong>Transition:</strong> And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.</p>
+<p>****Transition:<em>:</em>** And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -689,7 +747,7 @@ P01            control             -250</code></pre>
 <p>Important qualification: pytest only catches behaviour represented by tests. A green test suite does NOT prove the program is correct.</p>
 <p>Similarly: Ruff passing does not prove quality. Pyright passing does not prove correctness. Coverage does not prove correctness.</p>
 <p>Each tool reduces a particular class of risk.</p>
-<p>Transition: Here’s the cleanest demonstration of that distinction.</p>
+<p>**Transition:<em>:</em> Here’s the cleanest demonstration of that distinction.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -724,11 +782,17 @@ pytest     ✗</code></pre>
 </div>
 <aside class="notes">
 <p>At 05-tests, make the temporary inversion in def clean_trials(). Run Ruff, Pyright, then pytest. Use <code>demo-reset</code> afterwards.</p>
-<p>Why this demo matters: <code>~data["correct"]</code> is valid Python and type-consistent. Static tools cannot infer that I intended to retain correct trials rather than incorrect ones.</p>
+<p>Why this demo matters:</p>
+<p><code>~data["correct"]</code> is valid Python and type-consistent. Static tools cannot infer that I intended to retain correct trials rather than incorrect ones.</p>
 <p>The test contains behavioural knowledge that the generic tools don’t have.</p>
-<p>After pytest fails: Don’t rush. Let the failure sit on screen for a moment.</p>
+<p>After pytest fails:</p>
+<p>Don’t rush. Let the failure sit on screen for a moment.</p>
 <p>Then <code>demo-reset</code>.</p>
-<p>Tests are useful for: - validation - regression</p>
+<p>Tests are useful for:</p>
+<ul>
+<li>validation</li>
+<li>regression</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -760,7 +824,7 @@ pytest     ✗</code></pre>
 <p>The remaining unreliable component is me.</p>
 <p>This isn’t about developers being careless. Context switching, deadlines and routine human error mean optional repetitive steps eventually get skipped.</p>
 <p>Automation moves the check into the workflow itself.</p>
-<p>Transition: First we move it as close to the developer as possible: the commit.</p>
+<p>**Transition:<em>:</em> First we move it as close to the developer as possible: the commit.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -792,8 +856,14 @@ pre-commit
 <aside class="notes">
 <p><code>demo-next</code> -&gt; 06-precommit. Add an unused import, stage it, attempt commit; hook should stop it. Then mention <code>git commit --no-verify</code> to motivate CI.</p>
 <p>pre-commit runs configured checks automatically around the commit workflow.</p>
-<p>Advantages: - immediate feedback; - same checks every time; - prevents trivial failures reaching the remote repository.</p>
-<p>But: hooks are local. They have to be installed. They can be bypassed with –no-verify.</p>
+<p>Advantages:</p>
+<ul>
+<li>immediate feedback;</li>
+<li>same checks every time;</li>
+<li>prevents trivial failures reaching the remote repository.</li>
+</ul>
+<p>But:</p>
+<p>hooks are local. They have to be installed. They can be bypassed with –no-verify.</p>
 <p>Therefore pre-commit is convenience/early feedback, not the final enforcement layer.</p>
 <p>That limitation motivates CI.</p>
 <style type="text/css">
@@ -829,7 +899,13 @@ pre-commit
 <p><code>demo-next</code> -&gt; 07-ci. Use a prepared branch or screenshot/video backup. Demonstrate a –no-verify commit being rejected by GitHub Actions.</p>
 <p>CI = continuous integration.</p>
 <p>At the previous stage, pre-commit stopped me locally. But local hooks can be bypassed with –no-verify, or someone may never install them. So I deliberately bypassed the hook and pushed the same regression to this PR. Ruff passes. Pyright passes. pytest fails. The important difference is that this check is now being run by the shared repository, not by my development environment. If we make CI a required check, this PR cannot be merged until the problem is fixed.</p>
-<p>Why this matters: - independent of whether I remembered; - independent of my editor; - independent of my local hooks; - gives collaborators one shared result.</p>
+<p>Why this matters:</p>
+<ul>
+<li>independent of whether I remembered;</li>
+<li>independent of my editor;</li>
+<li>independent of my local hooks;</li>
+<li>gives collaborators one shared result.</li>
+</ul>
 <p>CI doesn’t magically make tests better. It makes running the agreed checks consistent and visible.</p>
 <p>Pre-commit: fast local feedback. CI: independent shared verification.</p>
 <style type="text/css">
@@ -911,8 +987,14 @@ Do the tests still pass?</code></pre>
 <li>This is useful for collaborators, CI, documentation, and future me.</li>
 <li>Make can do considerably more with dependencies between files and targets; here I’m deliberately using it mostly as a simple task runner.</li>
 </ul>
-<p>Anecdote prompt - Constantly return to old projects and takes time to remember how to run them</p>
-<p>Transition - This points to a broader principle: good practice is much easier to sustain when we remove unnecessary friction.</p>
+<p>Anecdote prompt</p>
+<ul>
+<li>Constantly return to old projects and takes time to remember how to run them</li>
+</ul>
+<p><em>Transition:</em></p>
+<ul>
+<li>This points to a broader principle: good practice is much easier to sustain when we remove unnecessary friction.</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -951,7 +1033,7 @@ Do the tests still pass?</code></pre>
 </ul>
 <p><strong>Demo</strong></p>
 <p>Show one real Espanso shortcut: gpo. Keep this brief. ;gpo expands to -&gt; git push origin <code>git rev-parse --abbrev-ref HEAD</code></p>
-<p><strong>Transition</strong></p>
+<p><strong>Transition:</strong></p>
 <ul>
 <li>We’ve now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?</li>
 </ul>
@@ -1016,7 +1098,7 @@ uv.lock</code></pre>
 <li>This does not magically guarantee scientific reproducibility. Data provenance, operating systems, external services, randomness, hardware and many other factors may matter in real projects.</li>
 <li>What we’ve done is systematically remove a large number of hidden software assumptions.</li>
 </ul>
-<p>Transition</p>
+<p><em>Transition:</em></p>
 <ul>
 <li>But there is an obvious objection: look how many files we’ve added. Have we actually made the project simpler?</li>
 </ul>
@@ -1056,13 +1138,38 @@ uv.lock</code></pre>
 <p><strong>The second has fewer unstated assumptions.</strong></p>
 </div>
 <aside class="notes">
-<p><strong>What to say</strong> - Acknowledge the obvious objection rather than pretending the tooling is free. - The final project has more files, more configuration and more concepts. - Tooling has a complexity cost. “Professional” does not mean adding every possible tool to every script.</p>
-<p>The first project is simpler in one sense: - fewer files; - fewer concepts; - faster to create.</p>
-<p>The second is simpler in another sense: - the environment is specified; - assumptions are tested; - checks are automated; - common workflows are documented; - less knowledge exists only in someone’s head.</p>
-<p><strong>Key line</strong> The first has fewer files.</p>
+<p><strong>What to say</strong></p>
+<ul>
+<li>Acknowledge the obvious objection rather than pretending the tooling is free.</li>
+<li>The final project has more files, more configuration and more concepts.</li>
+<li>Tooling has a complexity cost. “Professional” does not mean adding every possible tool to every script.</li>
+</ul>
+<p>The first project is simpler in one sense:</p>
+<ul>
+<li>fewer files;</li>
+<li>fewer concepts;</li>
+<li>faster to create.</li>
+</ul>
+<p>The second is simpler in another sense:</p>
+<ul>
+<li>the environment is specified;</li>
+<li>assumptions are tested;</li>
+<li>checks are automated;</li>
+<li>common workflows are documented;</li>
+<li>less knowledge exists only in someone’s head.</li>
+</ul>
+<p><strong>Key line</strong></p>
+<p>The first has fewer files.</p>
 <p>The second has fewer <strong>unstated assumptions</strong>.</p>
-<p><strong>Qualification</strong> - For a ten-line disposable script, all this infrastructure may be excessive. - The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.</p>
-<p><strong>Transition</strong> - None of these principles is particularly Python-specific.</p>
+<p><strong>Qualification</strong></p>
+<ul>
+<li>For a ten-line disposable script, all this infrastructure may be excessive.</li>
+<li>The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.</li>
+</ul>
+<p><strong>Transition:</strong></p>
+<ul>
+<li>None of these principles is particularly Python-specific.</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1203,7 +1310,7 @@ uv.lock</code></pre>
 <ul>
 <li>Don’t imply that every project needs every row of this table.</li>
 </ul>
-<p><strong>Transition</strong></p>
+<p><strong>Transition:</strong></p>
 <ul>
 <li>If somebody here currently uses none of this, where should they actually start?</li>
 </ul>
@@ -1274,9 +1381,13 @@ uv.lock</code></pre>
 <li>Add as the project becomes longer-lived and repetitive workflows emerge.</li>
 </ul></li>
 </ol>
-<p><strong>If somebody asks for my minimal Python starting point</strong> Git + uv + Ruff + a few meaningful pytest tests is already a substantial improvement.</p>
+<p><strong>If somebody asks for my minimal Python starting point</strong></p>
+<p>Git + uv + Ruff + a few meaningful pytest tests is already a substantial improvement.</p>
 <p>Then add Pyright/automation as the project warrants it.</p>
-<p><strong>Transition</strong> - There is one idea connecting nearly everything I’ve shown.</p>
+<p><strong>Transition:</strong></p>
+<ul>
+<li>There is one idea connecting nearly everything I’ve shown.</li>
+</ul>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1364,10 +1475,10 @@ latest             published result</code></pre>
 <div class="columns">
 <div class="column" style="width:62%;">
 <p>The slides and complete demo are on GitHub:</p>
-<p><strong>github.com/RowanLS/dev-tools-demo</strong></p>
+<p><strong>github.com/RowanLS/developer-tooling-talk</strong></p>
 <p>Clone everything, including the demo repository:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--recurse-submodules</span> <span class="dt">\</span></span>
-<span id="cb39-2"><a href="" aria-hidden="true" tabindex="-1"></a>  https://github.com/YOUR-USERNAME/dev-tools-demo.git</span>
+<span id="cb39-2"><a href="" aria-hidden="true" tabindex="-1"></a>  https://github.com/RowanLS/developer-tooling-talk.git</span>
 <span id="cb39-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> dev-tools-demo/rt-demo</span>
 <span id="cb39-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">--detach</span> 00-start</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1384,10 +1495,16 @@ latest             published result</code></pre>
 </div>
 <aside class="notes">
 <p>Final practical call to action.</p>
-<p>The parent repository contains: - the presentation; - instructions; - the <code>rt-demo</code> repository as a submodule.</p>
+<p>The parent repository contains:</p>
+<ul>
+<li>the presentation;</li>
+<li>instructions;</li>
+<li>the <code>rt-demo</code> repository as a submodule.</li>
+</ul>
 <p>Participants should clone with <code>--recurse-submodules</code>.</p>
 <p>Suggest starting at <code>00-start</code> and moving through the tags manually.</p>
-<p>Useful commands: <code>git switch --detach 05-tests</code> <code>git diff 04-complexity 05-tests</code></p>
+<p>Useful commands:</p>
+<p><code>git switch --detach 05-tests</code> <code>git diff 04-complexity 05-tests</code></p>
 <p>Do NOT recommend the presenter demo scripts: those deliberately discard changes.</p>
 <p>Leave this slide visible during questions so people have time to scan the QR code.</p>
 <style type="text/css">

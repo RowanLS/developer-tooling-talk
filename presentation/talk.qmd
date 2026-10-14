@@ -25,10 +25,12 @@ I've sent you this repository. **Can you reproduce the figure?**
 Demo: `demo-start` (00-start), then run `python analysis.py`.
 
 Main point:
+
 - The script working for me is not enough to make the analysis reproducible.
 - The repository does not yet describe the environment needed to run it.
 
 Ask:
+
 - Which Python version?
 - Which pandas?
 - Which matplotlib?
@@ -37,7 +39,7 @@ Ask:
 Key Practical Question: can another person take this repository
 and regenerate the output?
 
-Transition:
+*Transition:*
 First, before adding any tooling, I need to know what changed and why.
 That means version control.
 :::
@@ -58,26 +60,29 @@ Version control is a record of deliberate changes—not a folder of `final_v3.py
 Main point:
 
 Version control / Back up is important because of:
+
 - computer death
 - accidental deletion
 - mistakes
 
 Version control gives us a history of deliberate changes to the project.
 
-* Git gives me:*
+*Git gives me:*
+
 - commits: meaningful snapshots;
 - diffs: exactly what changed;
 - branches: somewhere to experiment;
 - recovery: the ability to return to known states.
 
-Important distinction:
+*Important distinction:*
+
 Git is not primarily a backup system. Its value is the structured history
 of changes and the ability to reason about how the project evolved.
 
 This entire live demo relies on Git: every stage is a tagged historical
 version of the same project.
 
-Transition:
+*Transition:*
 Git itself is local. GitHub is a separate thing built around Git repositories.
 :::
 
@@ -108,26 +113,30 @@ Git itself is local. GitHub is a separate thing built around Git repositories.
 
 ::: {.notes}
 Main point:
+
 Git and GitHub are related but not interchangeable.
 
 Git:
+
 - software installed on my computer;
 - tracks repository history;
 - works completely offline;
 - GitHub did not invent Git.
 
 GitHub:
+
 - a service that can host Git repositories;
 - adds collaboration: pull requests, issues, permissions;
 - also provides services such as Actions and Dependabot.
 
 Useful test:
+
 I can use Git without GitHub.
 I cannot meaningfully use GitHub repositories without Git underneath them.
 
 GitHub will come back later when we need CI and dependency automation.
 
-Transition:
+*Transition:*
 Now that we can track changes, the first problem with our actual project is:
 can somebody reproduce its software environment?
 :::
@@ -162,17 +171,21 @@ Main point:
 The environment is part of the project, even though it isn't application code.
 
 pyproject.toml:
+
 - describes the project and its direct dependencies;
 - human-maintained project configuration.
 
 uv.lock:
+
 - records the resolved dependency graph and versions;
 - generated rather than something I normally hand-edit.
 
 uv sync:
+
 - makes my local environment agree with the project/lockfile.
 
 Key phrase:
+
 We're moving knowledge from "the state of my laptop" into version-controlled files.
 
 Don't claim that a lockfile guarantees perfect long-term reproducibility.
@@ -207,18 +220,23 @@ If a computer can identify and fix something reliably, don't spend human attenti
 ::: {.notes}
 `demo-next` -> 02-ruff.
 Run Ruff and let it fail. Then --fix, format, and show git diff.
+
 Main point:
+
 Use human attention for things requiring judgement; automate mechanical checks.
 
 Formatter:
+
 decides how code should look.
 
 Linter:
+
 analyses code for suspicious constructs, style violations and some likely bugs.
 
 Ruff does both, but they are conceptually different jobs.
 
 Important:
+
 Lint passing does NOT mean the program is correct.
 We're gradually building different layers of checks.
 :::
@@ -271,6 +289,7 @@ The return annotation:
 documents what callers can expect back.
 
 Benefits:
+
 - documentation for humans;
 - editor completion/navigation;
 - static analysis with Pyright;
@@ -278,7 +297,7 @@ Benefits:
 
 Type annotations are not runtime validation by themselves.
 
-Transition:
+*Transition:*
 Once we've written down those assumptions, Pyright can compare different
 parts of the program and tell us when they disagree.
 
@@ -322,7 +341,7 @@ This is deliberately a simple example.
 Real value comes when these interfaces are separated across modules and the
 mismatch is less visually obvious.
 
-Transition:
+*Transition:*
 Types can tell us whether components agree. They cannot tell us whether our
 design has become unnecessarily difficult to understand.
 :::
@@ -374,7 +393,7 @@ Notice:
 Pyright passes. The interfaces are type-consistent.
 Ruff's complexity check is answering a different question.
 
-Transition:
+*Transition:*
 We can make the code reproducible, tidy, typed and reasonably structured.
 But none of that answers the most important question...
 :::
@@ -402,6 +421,7 @@ None of those tools knows what a reaction time means.
 Pause here.
 
 We've checked:
+
 - environment;
 - lint/style;
 - interfaces/types;
@@ -418,7 +438,7 @@ This is the pivot of the talk:
 software can be perfectly valid according to generic tooling and still be
 scientifically wrong.
 
-Transition:
+*Transition:*
 Consider a value of -250 ms.
 :::
 
@@ -463,7 +483,7 @@ Domain validation answers:
 Don't claim pytest somehow knows scientific truth.
 We have to encode the relevant scientific/domain assumptions ourselves.
 
-Transition:
+*Transition:*
 So we turn that assumption into executable validation and test it.
 :::
 ---
@@ -537,7 +557,7 @@ Raw data should remain immutable. If real observations fail validation, investig
 **Key line:**
 We've moved another assumption from **something I know** to **something the project can check**.
 
-**Transition:**
+*Transition:*
 And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.
 :::
 
@@ -586,7 +606,7 @@ Coverage does not prove correctness.
 
 Each tool reduces a particular class of risk.
 
-Transition:
+*Transition:*
 Here's the cleanest demonstration of that distinction.
 :::
 ---
@@ -628,17 +648,20 @@ At 05-tests, make the temporary inversion in def clean_trials(). Run Ruff, Pyrig
 Use `demo-reset` afterwards.
 
 Why this demo matters:
+
 `~data["correct"]` is valid Python and type-consistent. Static tools cannot
 infer that I intended to retain correct trials rather than incorrect ones.
 
 The test contains behavioural knowledge that the generic tools don't have.
 
 After pytest fails:
+
 Don't rush. Let the failure sit on screen for a moment.
 
 Then `demo-reset`.
 
 Tests are useful for:
+
 - validation
 - regression
 :::
@@ -675,7 +698,7 @@ steps eventually get skipped.
 
 Automation moves the check into the workflow itself.
 
-Transition:
+*Transition:*
 First we move it as close to the developer as possible: the commit.
 :::
 ---
@@ -711,11 +734,13 @@ Then mention `git commit --no-verify` to motivate CI.
 pre-commit runs configured checks automatically around the commit workflow.
 
 Advantages:
+
 - immediate feedback;
 - same checks every time;
 - prevents trivial failures reaching the remote repository.
 
 But:
+
 hooks are local.
 They have to be installed.
 They can be bypassed with --no-verify.
@@ -761,6 +786,7 @@ The important difference is that this check is now being run by the shared repos
 If we make CI a required check, this PR cannot be merged until the problem is fixed.
 
 Why this matters:
+
 - independent of whether I remembered;
 - independent of my editor;
 - independent of my local hooks;
@@ -865,9 +891,11 @@ Run `make check`, then `make figure`.
 - Make can do considerably more with dependencies between files and targets; here I'm deliberately using it mostly as a simple task runner.
 
 Anecdote prompt
+
 - Constantly return to old projects and takes time to remember how to run them
 
-Transition
+*Transition:*
+
 - This points to a broader principle: good practice is much easier to sustain when we remove unnecessary friction.
 :::
 
@@ -909,7 +937,7 @@ Make desirable behaviour cheap.
 Show one real Espanso shortcut: gpo. Keep this brief.
 ;gpo expands to -> git push origin `git rev-parse --abbrev-ref HEAD`
 
-**Transition**
+*Transition:**
 
 - We've now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?
 
@@ -972,6 +1000,7 @@ uv sync
 make check
 make figure
 ```
+
 - uv sync: establish the specified software environment.
 - make check: run the project's automated quality and behavioural checks.
 - make figure: provide a documented route from the inputs to the output.
@@ -982,7 +1011,7 @@ Important qualification
 - This does not magically guarantee scientific reproducibility. Data provenance, operating systems, external services, randomness, hardware and many other factors may matter in real projects.
 - What we've done is systematically remove a large number of hidden software assumptions.
 
-Transition
+*Transition:*
 
 - But there is an obvious objection: look how many files we've added. Have we actually made the project simpler?
 
@@ -1018,16 +1047,19 @@ The first has fewer files.
 
 ::: {.notes}
 **What to say**
+
 - Acknowledge the obvious objection rather than pretending the tooling is free.
 - The final project has more files, more configuration and more concepts.
 - Tooling has a complexity cost. “Professional” does not mean adding every possible tool to every script.
 
 The first project is simpler in one sense:
+
 - fewer files;
 - fewer concepts;
 - faster to create.
 
 The second is simpler in another sense:
+
 - the environment is specified;
 - assumptions are tested;
 - checks are automated;
@@ -1035,15 +1067,18 @@ The second is simpler in another sense:
 - less knowledge exists only in someone's head.
 
 **Key line**
+
 The first has fewer files.
 
 The second has fewer **unstated assumptions**.
 
 **Qualification**
+
 - For a ten-line disposable script, all this infrastructure may be excessive.
 - The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.
 
-**Transition**
+*Transition:**
+
 - None of these principles is particularly Python-specific.
 :::
 ---
@@ -1106,7 +1141,7 @@ Walk across the rows rather than every cell:
 
 - Don't imply that every project needs every row of this table.
 
-**Transition**
+*Transition:**
 
 - If somebody here currently uses none of this, where should they actually start?
 :::
@@ -1162,12 +1197,15 @@ Walk through the progression:
    - Add as the project becomes longer-lived and repetitive workflows emerge.
 
 **If somebody asks for my minimal Python starting point**
+
 Git + uv + Ruff + a few meaningful pytest tests is already a substantial improvement.
 
 Then add Pyright/automation as the project warrants it.
 
-**Transition**
+*Transition:**
+
 - There is one idea connecting nearly everything I've shown.
+
 :::
 ---
 
@@ -1260,7 +1298,7 @@ Then stop. Don't add another summary of the tools.
 
 The slides and complete demo are on GitHub:
 
-**github.com/RowanLS/dev-tools-demo**
+**github.com/RowanLS/developer-tooling-talk**
 
 Clone everything, including the demo repository:
 
@@ -1300,6 +1338,7 @@ Break things. Run the tools. Use `git diff` to see what changed.
 Final practical call to action.
 
 The parent repository contains:
+
 - the presentation;
 - instructions;
 - the `rt-demo` repository as a submodule.
@@ -1309,6 +1348,7 @@ Participants should clone with `--recurse-submodules`.
 Suggest starting at `00-start` and moving through the tags manually.
 
 Useful commands:
+
 `git switch --detach 05-tests`
 `git diff 04-complexity 05-tests`
 
