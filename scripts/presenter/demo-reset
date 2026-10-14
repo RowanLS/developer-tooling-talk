@@ -1,29 +1,71 @@
 #!/usr/bin/env bash
-# demo-reset: Discard demo changes and restore the current demo tag.
-# WARNING: Use only in the disposable rt-demo presentation checkout.
+#
+# demo-reset: Discard changes and commits made during the current demo,
+# restoring the repository to the current demo stage.
+#
+# WARNING: This deliberately destroys demo changes and commits.
+
 set -euo pipefail
+
+TAGS=(
+    "00-start"
+    "01-uv"
+    "02-ruff"
+    "03-types"
+    "04-complexity"
+    "05-tests"
+    "06-precommit"
+    "07-ci"
+    "08-dependabot"
+    "09-final"
+)
+
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     echo "Error: not inside a Git repository." >&2
     exit 1
 }
-tag="$(git describe --tags --exact-match HEAD 2>/dev/null)" || {
-    echo "Error: HEAD is not exactly at a demo tag." >&2
-    exit 1
+
+prepare_stage() {
+    if [[ -f ".pre-commit-config.yaml" ]]; then
+        echo "Preparing pre-commit hook..."
+        uv run pre-commit install --install-hooks
+    else
+        # Stages 00–05 predate pre-commit. Remove any hook left
+        # behind after visiting a later stage.
+        rm -f "$(git rev-parse --git-path hooks/pre-commit)"
+    fi
 }
-clean_demo_artifacts() {
-    # Remove only known generated artefacts that can survive Git tag switches
-    # because they are ignored. Deliberately preserve .venv and other local files.
-    find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+
+clean_generated() {
+    git clean -fd
+
+    find . -type d -name '__pycache__' \
+        -prune -exec rm -rf {} +
+
     rm -rf .pytest_cache .ruff_cache
     rm -f figure1.png
+
+    find src tests -depth -type d -empty \
+        -delete 2>/dev/null || true
 }
-clean_worktree() {
-    # WARNING: deliberately discards tracked and ordinary untracked changes.
-    git reset --hard
-    git clean -fd
-    clean_demo_artifacts
-}
-git reset --hard "$tag"
-git clean -fd
-clean_demo_artifacts
-echo "Reset to: $tag"
+
+# Find the latest demo tag that is an ancestor of HEAD.
+current=""
+
+for tag in "${TAGS[@]}"; do
+    if git merge-base --is-ancestor "$tag" HEAD 2>/dev/null; then
+        current="$tag"
+    fi
+done
+
+if [[ -z "$current" ]]; then
+    echo "Error: could not determine the current demo stage." >&2
+    exit 1
+fi
+
+echo "Resetting demo to: $current"
+
+git reset --hard "$current"
+clean_generated
+prepare_stage
+echo "Demo restored: $current"

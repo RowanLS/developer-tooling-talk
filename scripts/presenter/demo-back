@@ -18,6 +18,16 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     echo "Error: not inside a Git repository." >&2
     exit 1
 }
+prepare_stage() {
+    if [[ -f ".pre-commit-config.yaml" ]]; then
+        echo "Preparing pre-commit hook..."
+        uv run pre-commit install --install-hooks
+    else
+        # Stages 00–05 predate pre-commit. Remove any hook left
+        # behind after visiting a later stage.
+        rm -f "$(git rev-parse --git-path hooks/pre-commit)"
+    fi
+}
 clean_demo_artifacts() {
     # Remove only known generated artefacts that can survive Git tag switches
     # because they are ignored. Deliberately preserve .venv and other local files.
@@ -60,4 +70,5 @@ clean_worktree
 echo "Switching to $previous..."
 git switch --detach "$previous"
 clean_demo_artifacts
+prepare_stage
 echo "Now at: $previous"
