@@ -68,7 +68,7 @@ A GitHub account is not required to download and explore the materials.
 
 ```bash
 git clone --recurse-submodules \
-  https://github.com/YOUR-USERNAME/developer-tooling-talk.git
+  https://github.com/RowanLS/developer-tooling-talk.git
 
 cd developer-tooling-talk
 ```
@@ -96,6 +96,11 @@ To generate a standalone HTML presentation:
 ```bash
 quarto render presentation/talk.qmd
 ```
+Open presentation/talk.html in a browser. In Reveal.js:
+
+* F — fullscreen
+* S — speaker view and notes
+* Arrow keys / Space — advance through the presentation
 
 Speaker notes are included in the presentation source.
 
@@ -258,18 +263,36 @@ If real observations fail validation, investigate their provenance and document 
 
 ## Presenter utilities
 
-The `scripts/presenter/` directory contains utilities used during the live presentation:
+The `scripts/presenter/` directory contains utilities used to move quickly between the tagged stages during the live presentation:
 
-- `demo-start`: return to the first stage
-- `demo-next`: advance to the next stage
-- `demo-back`: return to the previous stage
-- `demo-reset`: restore the current stage
+- `demo-start` — discard demo changes and return to `00-start`
+- `demo-next` — discard demo changes and advance to the next stage
+- `demo-back` — discard demo changes and return to the previous stage
+- `demo-reset` — discard demo changes and restore the current stage
 
-**Warning:** These scripts deliberately discard working-tree changes and may delete untracked files.
+> **Warning:** These are destructive presenter utilities. They deliberately discard working-tree changes and may delete untracked files.
 
-They are intended for a disposable presentation checkout, not for participants' normal development work.
+They are intended only for the disposable checkout used during the live presentation. **Participants should not use them to explore the demo.** Instead, use standard Git commands such as:
 
-Participants should use standard Git commands instead.
+```bash
+cd rt-demo
+git switch --detach 05-tests
+```
+
+and compare stages with:
+
+```bash
+git diff 04-complexity 05-tests
+```
+
+If you want to modify a stage and keep your work, create a branch first:
+
+```bash
+git switch --detach 05-tests
+git switch -c my-experiments
+```
+
+Full setup instructions, including how the presenter adds these commands to their `PATH`, are in [`scripts/presenter/README.md`](scripts/presenter/README.md).
 
 ## Further reading
 
