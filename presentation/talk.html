@@ -236,7 +236,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <li>How do you install them?</li>
 </ul>
 <p>Key Practical Question: can another person take this repository and regenerate the output?</p>
-<p>**Transition:<em>:</em> First, before adding any tooling, I need to know what changed and why. That means version control.</p>
+<p><em>Transition:</em> First, before adding any tooling, I need to know what changed and why. That means version control.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -264,17 +264,17 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <li>mistakes</li>
 </ul>
 <p>Version control gives us a history of deliberate changes to the project.</p>
+<p><em>Git gives me:</em></p>
 <ul>
-<li><p>Git gives me:*</p></li>
-<li><p>commits: meaningful snapshots;</p></li>
-<li><p>diffs: exactly what changed;</p></li>
-<li><p>branches: somewhere to experiment;</p></li>
-<li><p>recovery: the ability to return to known states.</p></li>
+<li>commits: meaningful snapshots;</li>
+<li>diffs: exactly what changed;</li>
+<li>branches: somewhere to experiment;</li>
+<li>recovery: the ability to return to known states.</li>
 </ul>
 <p><em>Important distinction:</em></p>
 <p>Git is not primarily a backup system. Its value is the structured history of changes and the ability to reason about how the project evolved.</p>
 <p>This entire live demo relies on Git: every stage is a tagged historical version of the same project.</p>
-<p>**Transition:<em>:</em> Git itself is local. GitHub is a separate thing built around Git repositories.</p>
+<p><em>Transition:</em> Git itself is local. GitHub is a separate thing built around Git repositories.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -327,7 +327,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>Useful test:</p>
 <p>I can use Git without GitHub. I cannot meaningfully use GitHub repositories without Git underneath them.</p>
 <p>GitHub will come back later when we need CI and dependency automation.</p>
-<p>**Transition:<em>:</em> Now that we can track changes, the first problem with our actual project is: can somebody reproduce its software environment?</p>
+<p><em>Transition:</em> Now that we can track changes, the first problem with our actual project is: can somebody reproduce its software environment?</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -406,13 +406,75 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p><code>demo-next</code> -&gt; 02-ruff. Run Ruff and let it fail. Then –fix, format, and show git diff.</p>
 <p>Main point:</p>
 <p>Use human attention for things requiring judgement; automate mechanical checks.</p>
-<p>Formatter:</p>
-<p>decides how code should look.</p>
-<p>Linter:</p>
-<p>analyses code for suspicious constructs, style violations and some likely bugs.</p>
+<p><em>Formatter:</em> decides how code should look.</p>
+<p><em>Linter:</em> analyses code for suspicious constructs, style violations and some likely bugs.</p>
 <p>Ruff does both, but they are conceptually different jobs.</p>
 <p>Important:</p>
 <p>Lint passing does NOT mean the program is correct. We’re gradually building different layers of checks.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="linters-can-catch-real-bugs-too" class="slide level2">
+<h2>Linters can catch real bugs too</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> add_exclusion(</span>
+<span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a>    participant: <span class="bu">str</span>,</span>
+<span id="cb8-3"><a href="" aria-hidden="true" tabindex="-1"></a>    exclusions: <span class="bu">list</span>[<span class="bu">str</span>] <span class="op">=</span> [],</span>
+<span id="cb8-4"><a href="" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">str</span>]:</span>
+<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a>    exclusions.append(participant)</span>
+<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> exclusions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="fragment">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="" aria-hidden="true" tabindex="-1"></a>add_exclusion(<span class="st">"P01"</span>)  <span class="co"># ["P01"]</span></span>
+<span id="cb9-2"><a href="" aria-hidden="true" tabindex="-1"></a>add_exclusion(<span class="st">"P02"</span>)  <span class="co"># ["P01", "P02"]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre class="text"><code>B006 Do not use mutable data structures for argument defaults</code></pre>
+</div>
+<div class="fragment">
+<p><strong>Fix: create a new list for each call</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> add_exclusion(</span>
+<span id="cb11-2"><a href="" aria-hidden="true" tabindex="-1"></a>    participant: <span class="bu">str</span>,</span>
+<span id="cb11-3"><a href="" aria-hidden="true" tabindex="-1"></a>    exclusions: <span class="bu">list</span>[<span class="bu">str</span>] <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb11-4"><a href="" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">str</span>]:</span>
+<span id="cb11-5"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> exclusions <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb11-6"><a href="" aria-hidden="true" tabindex="-1"></a>        exclusions <span class="op">=</span> []</span>
+<span id="cb11-7"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="" aria-hidden="true" tabindex="-1"></a>    exclusions.append(participant)</span>
+<span id="cb11-9"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> exclusions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="fragment takeaway">
+<p>A linter can catch code that is <strong>valid Python, but has surprising behaviour</strong>.</p>
+</div>
+<aside class="notes">
+<p><strong>Main point</strong></p>
+<p>The previous Ruff examples were deliberately mundane: formatting, imports, and simple style problems. Ruff can also identify patterns associated with genuine bugs.</p>
+<p><strong>Explain the bug</strong></p>
+<ul>
+<li>Default argument expressions are evaluated when the function is defined, not each time it is called.</li>
+<li>There is therefore one list shared between calls.</li>
+<li>The first call mutates that list by adding P01.</li>
+<li>The second call receives the same list, so P01 is unexpectedly still there.</li>
+<li>Nothing crashes. That is what makes this kind of bug particularly unpleasant.</li>
+</ul>
+<p>Ruff’s flake8-bugbear B006 rule detects mutable objects used as argument defaults.</p>
+<p><strong>Explain the fix</strong></p>
+<ul>
+<li>Use <code>None</code> as the default.</li>
+<li>Create the empty list inside the function.</li>
+<li>That expression is evaluated on each call, so each call gets its own list.</li>
+<li>We still allow a caller to explicitly supply an existing list if that is what they intend.</li>
+</ul>
+<p>Don’t live-code this example. It demonstrates the range of problems a linter can detect.</p>
+<p><strong>Connection to previous slide</strong></p>
+<p>Formatting and unused imports remove boring work from humans. But linting isn’t only cosmetic: some rules encode knowledge about Python constructs that are legal but commonly erroneous.</p>
+<p><strong>Transition</strong></p>
+<p>Ruff can reason about suspicious Python constructs. But it doesn’t know the contracts I’ve intended between different parts of my program. For that, we’ll add types.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -429,13 +491,13 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <h2>Make assumptions explicit</h2>
 <div class="columns">
 <div class="column" style="width:45%;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyse(<span class="bu">file</span>):</span>
-<span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyse(<span class="bu">file</span>):</span>
+<span id="cb12-2"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div><div class="column" style="width:55%;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyse(</span>
-<span id="cb9-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>: Path,</span>
-<span id="cb9-3"><a href="" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">float</span>]]:</span>
-<span id="cb9-4"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyse(</span>
+<span id="cb13-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>: Path,</span>
+<span id="cb13-3"><a href="" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">float</span>]]:</span>
+<span id="cb13-4"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></div>
 <div class="fragment">
 <p>Which interface would you rather discover in somebody else’s code?</p>
@@ -457,7 +519,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <li>mismatches can be detected before execution.</li>
 </ul>
 <p>Type annotations are not runtime validation by themselves.</p>
-<p>**Transition:<em>:</em> Once we’ve written down those assumptions, Pyright can compare different parts of the program and tell us when they disagree.</p>
+<p><em>Transition:</em> Once we’ve written down those assumptions, Pyright can compare different parts of the program and tell us when they disagree.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -470,24 +532,52 @@ Dr.&nbsp;Rowan Lindsay-Smith
           display:block!important;
       }</style></aside>
 </section>
-<section id="pyright-catch-disagreement-before-execution" class="slide level2">
-<h2>Pyright: catch disagreement before execution</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="" aria-hidden="true" tabindex="-1"></a>data_file <span class="op">=</span> <span class="st">"data/results.csv"</span></span>
-<span id="cb12-2"><a href="" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> analyse(data_file)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<pre class="text"><code>                 ┌──────── expected Path
-"data/results.csv" ────────✗</code></pre>
+<section id="types-catch-invalid-choices-before-you-run-the-code" class="slide level2">
+<h2>Types catch invalid choices before you run the code</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Literal</span>
+<span id="cb16-2"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> summarise(</span>
+<span id="cb16-4"><a href="" aria-hidden="true" tabindex="-1"></a>    data: pd.DataFrame,</span>
+<span id="cb16-5"><a href="" aria-hidden="true" tabindex="-1"></a>    method: Literal[<span class="st">"mean"</span>, <span class="st">"median"</span>],</span>
+<span id="cb16-6"><a href="" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb16-7"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="" aria-hidden="true" tabindex="-1"></a>data_file <span class="op">=</span> Path(<span class="st">"data/results.csv"</span>)</span>
-<span id="cb14-2"><a href="" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> analyse(data_file)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="" aria-hidden="true" tabindex="-1"></a>summarise(data, method<span class="op">=</span><span class="st">"mode"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre class="text"><code>                         ┌── not an allowed value
+"mode" ───────────────✗
+
+Expected "mean" or "median"</code></pre>
+</div>
+<div class="fragment">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="" aria-hidden="true" tabindex="-1"></a>summarise(data, method<span class="op">=</span><span class="st">"mean"</span>)  <span class="co"># ✓</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="fragment takeaway">
-<p>Types make interfaces useful to <strong>people and tools</strong>.</p>
+<p>Types can encode <strong>which values make sense</strong>, not just whether something is a string.</p>
 </div>
 <aside class="notes">
-<p>Main point: Pyright performs static analysis: it reasons about the code without needing to execute this particular path.</p>
-<p>The function says it expects a Path. The caller supplies a str. Both are individually valid Python objects, but the interfaces disagree.</p>
-<p>This is deliberately a simple example. Real value comes when these interfaces are separated across modules and the mismatch is less visually obvious.</p>
-<p>**Transition:<em>:</em> Types can tell us whether components agree. They cannot tell us whether our design has become unnecessarily difficult to understand.</p>
+<p><strong>Main point</strong> This is more interesting than simply checking whether something is a string.</p>
+<p>The function accepts a <code>method</code>, but not every possible string is meaningful. For this analysis, there are exactly two supported choices: <code>mean</code> and <code>median</code>.</p>
+<p><code>Literal["mean", "median"]</code> lets us express that as part of the function’s interface.</p>
+<p>If another part of the program says:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="" aria-hidden="true" tabindex="-1"></a>summarise(data, method<span class="op">=</span><span class="st">"mode"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>that is perfectly valid Python and <code>"mode"</code> is correctly a string.</p>
+<p>But it isn’t a value this function supports.</p>
+<p>Pyright can identify that disagreement without executing the analysis.</p>
+<p><strong>Why care?</strong></p>
+<p>In a small example the mistake is obvious because the caller and function definition are on the same slide.</p>
+<p>In a real project:</p>
+<ul>
+<li>the function may be in another module;</li>
+<li>the caller may have been written months later;</li>
+<li>several people may be using the interface;</li>
+<li>a typo may only occur on a rarely executed path.</li>
+</ul>
+<p>The annotation also helps the editor: when calling this function, the editor can offer <code>mean</code> and <code>median</code> as the valid choices.</p>
+<p><strong>Important distinction</strong></p>
+<p>This still isn’t domain validation in the broader sense.</p>
+<p>The type checker knows these values are allowed because <strong>we explicitly told it so</strong>. Later we’ll look at values such as negative reaction times where validity depends on scientific/domain knowledge.</p>
+<p><strong>Transition</strong></p>
+<p>Types can make interfaces much more explicit. But even completely type-correct code can gradually become difficult to reason about as requirements accumulate.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -510,8 +600,8 @@ Dr.&nbsp;Rowan Lindsay-Smith
     ├── exclude another case?
     └── just one more option...</code></pre>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright       <span class="co"># ✓</span></span>
-<span id="cb16-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .  <span class="co"># ✗ C901</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright       <span class="co"># ✓</span></span>
+<span id="cb22-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .  <span class="co"># ✗ C901</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="takeaway fragment">
 <p>Nobody deliberately writes the horrible 200-line function. <strong>Complexity accumulates.</strong></p>
@@ -524,7 +614,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>The exact threshold is not a law of nature. For this demo I deliberately use a strict threshold so the problem is visible.</p>
 <p>Complexity metrics are signals for investigation, not proof that code is bad.</p>
 <p>Notice: Pyright passes. The interfaces are type-consistent. Ruff’s complexity check is answering a different question.</p>
-<p>**Transition:<em>:</em> We can make the code reproducible, tidy, typed and reasonably structured. But none of that answers the most important question…</p>
+<p><em>Transition:</em> We can make the code reproducible, tidy, typed and reasonably structured. But none of that answers the most important question…</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -565,7 +655,7 @@ Dr.&nbsp;Rowan Lindsay-Smith
 <p>No.</p>
 <p>These tools know about software structure. They do not know the scientific meaning of a reaction time.</p>
 <p>This is the pivot of the talk: software can be perfectly valid according to generic tooling and still be scientifically wrong.</p>
-<p>**Transition:<em>:</em> Consider a value of -250 ms.</p>
+<p><em>Transition:</em> Consider a value of -250 ms.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -622,7 +712,7 @@ P01            control             -250</code></pre>
 <p>A type checker answers: “What kind of value is this?”</p>
 <p>Domain validation answers: “Is this value meaningful/allowed in this problem?”</p>
 <p>Don’t claim pytest somehow knows scientific truth. We have to encode the relevant scientific/domain assumptions ourselves.</p>
-<p>**Transition:<em>:</em> So we turn that assumption into executable validation and test it.</p>
+<p><em>Transition:</em> So we turn that assumption into executable validation and test it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -638,18 +728,18 @@ P01            control             -250</code></pre>
 <section id="encode-what-correct-means" class="slide level2">
 <h2>Encode what “correct” means</h2>
 <p><strong>1. Encode the domain rule</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (reaction_times <span class="op">&lt;=</span> <span class="dv">0</span>).<span class="bu">any</span>():</span>
-<span id="cb18-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
-<span id="cb18-3"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Reaction times must be greater than zero."</span></span>
-<span id="cb18-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (reaction_times <span class="op">&lt;=</span> <span class="dv">0</span>).<span class="bu">any</span>():</span>
+<span id="cb24-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb24-3"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Reaction times must be greater than zero."</span></span>
+<span id="cb24-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <p><strong>2. Encode the expected behaviour</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_negative_reaction_times_are_rejected():</span>
-<span id="cb19-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># synthetic test data containing -250 ms</span></span>
-<span id="cb19-3"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_negative_reaction_times_are_rejected():</span>
+<span id="cb25-2"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="co"># synthetic test data containing -250 ms</span></span>
+<span id="cb25-3"><a href="" aria-hidden="true" tabindex="-1"></a>    ...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <p><code>demo-next</code> → <code>05-tests</code>.</p>
@@ -664,14 +754,14 @@ P01            control             -250</code></pre>
 </blockquote>
 <p>The <code>-250</code> value is <strong>synthetic test data</strong>. We are not introducing an error into the real dataset.</p></li>
 <li><p><strong>Run the expectation automatically.</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>pytest checks that the application still behaves as we specified.</p></li>
 </ol>
 <p><strong>Why test something we’ve just implemented?</strong> Because the test preserves that expectation when the code changes later. If somebody refactors <code>validate_data()</code> and accidentally removes the check, the test should fail.</p>
 <p><strong>Important distinction:</strong> pytest does not know that negative reaction times are impossible. The domain knowledge comes from us. pytest gives us a repeatable way to check that the software continues to implement that knowledge.</p>
 <p><strong>Research-practice point:</strong> Raw data should remain immutable. If real observations fail validation, investigate their provenance. Any justified correction or exclusion should happen through an explicit, documented processing step rather than silently editing the source data.</p>
 <p><strong>Key line:</strong> We’ve moved another assumption from <strong>something I know</strong> to <strong>something the project can check</strong>.</p>
-<p>****Transition:<em>:</em>** And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.</p>
+<p><em>Transition:</em> And this is why we need several tools rather than one universal “quality checker”: they know about different kinds of mistakes.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -747,7 +837,7 @@ P01            control             -250</code></pre>
 <p>Important qualification: pytest only catches behaviour represented by tests. A green test suite does NOT prove the program is correct.</p>
 <p>Similarly: Ruff passing does not prove quality. Pyright passing does not prove correctness. Coverage does not prove correctness.</p>
 <p>Each tool reduces a particular class of risk.</p>
-<p>**Transition:<em>:</em> Here’s the cleanest demonstration of that distinction.</p>
+<p><em>Transition:</em> Here’s the cleanest demonstration of that distinction.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -763,15 +853,15 @@ P01            control             -250</code></pre>
 <section id="valid-code-can-still-be-wrong" class="slide level2">
 <h2>Valid code can still be wrong</h2>
 <p>Change:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
-<span id="cb22-2"><a href="" aria-hidden="true" tabindex="-1"></a>        data[<span class="st">"correct"</span>],</span>
-<span id="cb22-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
-<span id="cb22-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
+<span id="cb28-2"><a href="" aria-hidden="true" tabindex="-1"></a>        data[<span class="st">"correct"</span>],</span>
+<span id="cb28-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
+<span id="cb28-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>into:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
-<span id="cb23-2"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="op">~</span>data[<span class="st">"correct"</span>],</span>
-<span id="cb23-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
-<span id="cb23-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> pd.Series(</span>
+<span id="cb29-2"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="op">~</span>data[<span class="st">"correct"</span>],</span>
+<span id="cb29-3"><a href="" aria-hidden="true" tabindex="-1"></a>        dtype<span class="op">=</span><span class="st">"bool"</span>,</span>
+<span id="cb29-4"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <pre class="text"><code>Ruff       ✓
 Pyright    ✓
@@ -824,7 +914,7 @@ pytest     ✗</code></pre>
 <p>The remaining unreliable component is me.</p>
 <p>This isn’t about developers being careless. Context switching, deadlines and routine human error mean optional repetitive steps eventually get skipped.</p>
 <p>Automation moves the check into the workflow itself.</p>
-<p>**Transition:<em>:</em> First we move it as close to the developer as possible: the commit.</p>
+<p><em>Transition:</em> First we move it as close to the developer as possible: the commit.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -848,7 +938,7 @@ pre-commit
     ├── Pyright
     └── pytest</code></pre>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Demonstrate pre-commit"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Demonstrate pre-commit"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="fragment takeaway">
 <p>Make the easiest workflow the correct workflow.</p>
@@ -964,15 +1054,15 @@ Do the tests still pass?</code></pre>
 <section id="give-the-project-a-vocabulary" class="slide level2">
 <h2>Give the project a vocabulary</h2>
 <p>Before:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb31-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .</span>
-<span id="cb31-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format <span class="at">--check</span> .</span>
-<span id="cb31-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright</span>
-<span id="cb31-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span>
-<span id="cb31-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> rt_analysis.figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check .</span>
+<span id="cb37-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format <span class="at">--check</span> .</span>
+<span id="cb37-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pyright</span>
+<span id="cb37-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytest</span>
+<span id="cb37-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python <span class="at">-m</span> rt_analysis.figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <p>After:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
-<span id="cb32-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb38-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
+<span id="cb38-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="takeaway fragment">
 <p>A Makefile gives the project a <strong>vocabulary</strong>.</p>
@@ -1033,7 +1123,7 @@ Do the tests still pass?</code></pre>
 </ul>
 <p><strong>Demo</strong></p>
 <p>Show one real Espanso shortcut: gpo. Keep this brief. ;gpo expands to -&gt; git push origin <code>git rev-parse --abbrev-ref HEAD</code></p>
-<p><strong>Transition:</strong></p>
+<p><em>Transition:</em></p>
 <ul>
 <li>We’ve now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?</li>
 </ul>
@@ -1071,9 +1161,9 @@ pyproject.toml
 uv.lock</code></pre>
 </div></div>
 <div class="fragment">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb36-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
-<span id="cb36-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
-<span id="cb36-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb42-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb42-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
+<span id="cb42-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <aside class="notes">
 <p><strong>Return explicitly to the opening question.</strong></p>
@@ -1084,9 +1174,9 @@ uv.lock</code></pre>
 <li>What has changed is that the assumptions surrounding it have become explicit.</li>
 </ul>
 <p>Walk through the final commands:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
-<span id="cb37-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
-<span id="cb37-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb43-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb43-2"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> check</span>
+<span id="cb43-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> figure</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li>uv sync: establish the specified software environment.</li>
 <li>make check: run the project’s automated quality and behavioural checks.</li>
@@ -1166,7 +1256,7 @@ uv.lock</code></pre>
 <li>For a ten-line disposable script, all this infrastructure may be excessive.</li>
 <li>The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.</li>
 </ul>
-<p><strong>Transition:</strong></p>
+<p><em>Transition:</em></p>
 <ul>
 <li>None of these principles is particularly Python-specific.</li>
 </ul>
@@ -1310,7 +1400,7 @@ uv.lock</code></pre>
 <ul>
 <li>Don’t imply that every project needs every row of this table.</li>
 </ul>
-<p><strong>Transition:</strong></p>
+<p><em>Transition:</em></p>
 <ul>
 <li>If somebody here currently uses none of this, where should they actually start?</li>
 </ul>
@@ -1384,7 +1474,7 @@ uv.lock</code></pre>
 <p><strong>If somebody asks for my minimal Python starting point</strong></p>
 <p>Git + uv + Ruff + a few meaningful pytest tests is already a substantial improvement.</p>
 <p>Then add Pyright/automation as the project warrants it.</p>
-<p><strong>Transition:</strong></p>
+<p><em>Transition:</em></p>
 <ul>
 <li>There is one idea connecting nearly everything I’ve shown.</li>
 </ul>
@@ -1477,11 +1567,11 @@ latest             published result</code></pre>
 <p>The slides and complete demo are on GitHub:</p>
 <p><strong>github.com/RowanLS/developer-tooling-talk</strong></p>
 <p>Clone everything, including the demo repository:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--recurse-submodules</span> <span class="dt">\</span></span>
-<span id="cb39-2"><a href="" aria-hidden="true" tabindex="-1"></a>  https://github.com/RowanLS/developer-tooling-talk.git</span>
-<span id="cb39-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> dev-tools-demo/rt-demo</span>
-<span id="cb39-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">--detach</span> 00-start</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb45-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--recurse-submodules</span> <span class="dt">\</span></span>
+<span id="cb45-2"><a href="" aria-hidden="true" tabindex="-1"></a>  https://github.com/RowanLS/developer-tooling-talk.git</span>
+<span id="cb45-3"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> developer-tooling-talk/rt-demo</span>
+<span id="cb45-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">--detach</span> 00-start</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then work through:</p>
 <pre class="text"><code>00-start → 01-uv → 02-ruff → 03-types → 04-complexity
          → 05-tests → 06-precommit → 07-ci

@@ -225,13 +225,9 @@ Main point:
 
 Use human attention for things requiring judgement; automate mechanical checks.
 
-Formatter:
+*Formatter:* decides how code should look.
 
-decides how code should look.
-
-Linter:
-
-analyses code for suspicious constructs, style violations and some likely bugs.
+*Linter:* analyses code for suspicious constructs, style violations and some likely bugs.
 
 Ruff does both, but they are conceptually different jobs.
 
@@ -239,6 +235,97 @@ Important:
 
 Lint passing does NOT mean the program is correct.
 We're gradually building different layers of checks.
+:::
+
+---
+
+## Linters can catch real bugs too
+
+```python
+def add_exclusion(
+    participant: str,
+    exclusions: list[str] = [],
+) -> list[str]:
+    exclusions.append(participant)
+    return exclusions
+```
+
+::: {.fragment}
+
+```python
+add_exclusion("P01")  # ["P01"]
+add_exclusion("P02")  # ["P01", "P02"]
+```
+
+```text
+B006 Do not use mutable data structures for argument defaults
+```
+
+:::
+
+::: {.fragment}
+
+**Fix: create a new list for each call**
+
+```python
+def add_exclusion(
+    participant: str,
+    exclusions: list[str] | None = None,
+) -> list[str]:
+    if exclusions is None:
+        exclusions = []
+
+    exclusions.append(participant)
+    return exclusions
+```
+
+:::
+
+::: {.fragment .takeaway}
+A linter can catch code that is **valid Python, but has surprising behaviour**.
+:::
+
+::: {.notes}
+**Main point**
+
+The previous Ruff examples were deliberately mundane: formatting, imports,
+and simple style problems. Ruff can also identify patterns associated with
+genuine bugs.
+
+**Explain the bug**
+
+- Default argument expressions are evaluated when the function is defined,
+  not each time it is called.
+- There is therefore one list shared between calls.
+- The first call mutates that list by adding P01.
+- The second call receives the same list, so P01 is unexpectedly still there.
+- Nothing crashes. That is what makes this kind of bug particularly unpleasant.
+
+Ruff's flake8-bugbear B006 rule detects mutable objects used as argument
+defaults.
+
+**Explain the fix**
+
+- Use `None` as the default.
+- Create the empty list inside the function.
+- That expression is evaluated on each call, so each call gets its own list.
+- We still allow a caller to explicitly supply an existing list if that is
+  what they intend.
+
+Don't live-code this example. It demonstrates the range of problems a linter
+can detect.
+
+**Connection to previous slide**
+
+Formatting and unused imports remove boring work from humans. But linting
+isn't only cosmetic: some rules encode knowledge about Python constructs
+that are legal but commonly erroneous.
+
+**Transition**
+
+Ruff can reason about suspicious Python constructs. But it doesn't know the
+contracts I've intended between different parts of my program. For that,
+we'll add types.
 :::
 
 ---
@@ -305,47 +392,99 @@ parts of the program and tell us when they disagree.
 
 ---
 
-## Pyright: catch disagreement before execution
+## Types catch invalid choices before you run the code
 
 ```python
-data_file = "data/results.csv"
-results = analyse(data_file)
-```
+from typing import Literal
 
-```text
-                 ┌──────── expected Path
-"data/results.csv" ────────✗
+def summarise(
+    data: pd.DataFrame,
+    method: Literal["mean", "median"],
+):
+    ...
 ```
 
 ::: {.fragment}
+
 ```python
-data_file = Path("data/results.csv")
-results = analyse(data_file)
+summarise(data, method="mode")
 ```
+
+```text
+                         ┌── not an allowed value
+"mode" ───────────────✗
+
+Expected "mean" or "median"
+```
+
+:::
+
+::: {.fragment}
+
+```python
+summarise(data, method="mean")  # ✓
+```
+
 :::
 
 ::: {.fragment .takeaway}
-Types make interfaces useful to **people and tools**.
+Types can encode **which values make sense**, not just whether something is a string.
 :::
 
 ::: {.notes}
-Main point:
-Pyright performs static analysis: it reasons about the code without needing
-to execute this particular path.
+**Main point**
+This is more interesting than simply checking whether something is a string.
 
-The function says it expects a Path.
-The caller supplies a str.
-Both are individually valid Python objects, but the interfaces disagree.
+The function accepts a `method`, but not every possible string is meaningful.
+For this analysis, there are exactly two supported choices: `mean` and `median`.
 
-This is deliberately a simple example.
-Real value comes when these interfaces are separated across modules and the
-mismatch is less visually obvious.
+`Literal["mean", "median"]` lets us express that as part of the function's
+interface.
 
-*Transition:*
-Types can tell us whether components agree. They cannot tell us whether our
-design has become unnecessarily difficult to understand.
+If another part of the program says:
+
+```python
+summarise(data, method="mode")
+```
+
+that is perfectly valid Python and `"mode"` is correctly a string.
+
+But it isn't a value this function supports.
+
+Pyright can identify that disagreement without executing the analysis.
+
+**Why care?**
+
+In a small example the mistake is obvious because the caller and function
+definition are on the same slide.
+
+In a real project:
+
+- the function may be in another module;
+- the caller may have been written months later;
+- several people may be using the interface;
+- a typo may only occur on a rarely executed path.
+
+The annotation also helps the editor: when calling this function, the editor
+can offer `mean` and `median` as the valid choices.
+
+**Important distinction**
+
+This still isn't domain validation in the broader sense.
+
+The type checker knows these values are allowed because **we explicitly told
+it so**. Later we'll look at values such as negative reaction times where
+validity depends on scientific/domain knowledge.
+
+**Transition**
+
+Types can make interfaces much more explicit. But even completely type-correct
+code can gradually become difficult to reason about as requirements accumulate.
 :::
+
 ---
+
+
 
 ## “Just one more option…”
 
@@ -937,7 +1076,7 @@ Make desirable behaviour cheap.
 Show one real Espanso shortcut: gpo. Keep this brief.
 ;gpo expands to -> git push origin `git rev-parse --abbrev-ref HEAD`
 
-*Transition:**
+*Transition:*
 
 - We've now accumulated quite a lot of machinery. So return to the question I asked at the beginning: can somebody else reproduce Figure 1?
 
@@ -1077,7 +1216,7 @@ The second has fewer **unstated assumptions**.
 - For a ten-line disposable script, all this infrastructure may be excessive.
 - The appropriate amount of tooling depends on lifespan, collaborators, consequences of mistakes, and how often the code will change.
 
-*Transition:**
+*Transition:*
 
 - None of these principles is particularly Python-specific.
 :::
@@ -1141,7 +1280,7 @@ Walk across the rows rather than every cell:
 
 - Don't imply that every project needs every row of this table.
 
-*Transition:**
+*Transition:*
 
 - If somebody here currently uses none of this, where should they actually start?
 :::
@@ -1202,7 +1341,7 @@ Git + uv + Ruff + a few meaningful pytest tests is already a substantial improve
 
 Then add Pyright/automation as the project warrants it.
 
-*Transition:**
+*Transition:*
 
 - There is one idea connecting nearly everything I've shown.
 
@@ -1306,7 +1445,7 @@ Clone everything, including the demo repository:
 git clone --recurse-submodules \
   https://github.com/RowanLS/developer-tooling-talk.git
 
-cd dev-tools-demo/rt-demo
+cd developer-tooling-talk/rt-demo
 git switch --detach 00-start
 ```
 
